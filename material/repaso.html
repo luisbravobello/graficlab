@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computación Gráfica II · Repaso general</title>
+
+
+
+<style>
+:root{
+  --crema:#faf8f5; --crema2:#f2eee7; --tinta:#1c1a17; --tinta2:#26221c;
+  --texto:#1c1a17; --texto2:#4a453e; --tenue:#8a8073;
+  --plum:#6d3b6b; --teal:#1d6b6b; --rust:#b5502a; --gold:#a67c00; --blue:#2d5a9e; --green:#3a6b35;
+  --plum-l:#f0e6ef; --teal-l:#e1efef; --rust-l:#f8e9e1; --gold-l:#f5eed7; --blue-l:#e5edf8; --green-l:#e7f0e5;
+  --line:#e6ddcf;
+  --serif:'Fraunces',Georgia,serif; --sans:'Outfit',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--crema);color:var(--texto);font-family:var(--sans);line-height:1.65;font-size:18px;-webkit-font-smoothing:antialiased}
+#progress{position:fixed;top:0;left:0;height:4px;width:0%;z-index:100;background:linear-gradient(90deg,var(--plum),var(--blue),var(--teal),var(--green),var(--gold),var(--rust));}
+#dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;gap:11px}
+#dots a{width:10px;height:10px;border-radius:50%;border:1.5px solid #c9bfae;transition:all .3s;position:relative}
+#dots a.active{background:var(--tinta);border-color:var(--tinta);transform:scale(1.25)}
+#dots a span{position:absolute;right:19px;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--texto2);opacity:0;transition:opacity .3s}
+#dots a:hover span{opacity:1}
+@media(max-width:980px){#dots{display:none}}
+section{padding:96px 32px;position:relative}
+.wrap{max-width:900px;margin:0 auto}
+.bg-crema{background:var(--crema)} .bg-crema2{background:var(--crema2)}
+.bg-dark{background:var(--tinta);color:#efe9df}
+.bg-dark p{color:#b3aa9b} .bg-dark h2{color:#efe9df}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--tenue);display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.eyebrow::before{content:"";width:34px;height:1.5px;background:currentColor;opacity:.6}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.8rem,7.5vw,5.4rem);line-height:1.03;letter-spacing:-.02em}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5vw,3rem);line-height:1.1;letter-spacing:-.015em;margin-bottom:20px}
+h2 em,h1 em{font-style:italic}
+h3{font-family:var(--serif);font-weight:600;font-size:1.35rem;margin:26px 0 10px}
+.c-plum{color:var(--plum)} .c-teal{color:var(--teal)} .c-rust{color:var(--rust)} .c-gold{color:var(--gold)} .c-blue{color:var(--blue)} .c-green{color:var(--green)}
+p{margin-bottom:16px;color:var(--texto2);max-width:66ch}
+p.lead{font-size:1.22rem;color:var(--texto);line-height:1.5;max-width:60ch}
+strong{color:var(--texto);font-weight:600} .bg-dark strong{color:#efe9df}
+.mono-inline{font-family:var(--mono);font-size:.86em;background:rgba(0,0,0,.05);padding:2px 7px;border-radius:5px;color:var(--texto)}
+.bg-dark .mono-inline{background:rgba(255,255,255,.08);color:#efe9df}
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(120% 90% at 82% 12%,#fff 0%,var(--crema) 55%)}
+#hero canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.5}
+#hero .inner{position:relative;z-index:1}
+#hero .sub{font-size:1.3rem;color:var(--texto2);max-width:48ch;margin-top:26px;line-height:1.5}
+.hero-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:38px;font-family:var(--mono);font-size:12px;color:var(--tenue)}
+.hero-meta b{color:var(--texto);font-weight:500}
+.scrollhint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:1;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--tenue);display:flex;flex-direction:column;align-items:center;gap:9px}
+.scrollhint .arrow{font-size:20px;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.visible{opacity:1;transform:none}
+/* mapa del recorrido */
+.mapa{margin:34px 0;border-left:2px solid var(--line);padding-left:4px}
+.mapa .paso{display:grid;grid-template-columns:40px 1fr;gap:14px;padding:12px 0 16px 18px;position:relative}
+.mapa .paso::before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--rust);border:2px solid var(--crema)}
+.mapa .paso:nth-child(2)::before{background:var(--blue)} .mapa .paso:nth-child(3)::before{background:var(--teal)}
+.mapa .paso:nth-child(4)::before{background:var(--gold)} .mapa .paso:nth-child(5)::before{background:var(--green)} .mapa .paso:nth-child(6)::before{background:var(--plum)}
+.mapa .n{font-family:var(--serif);font-weight:600;font-size:1.8rem;line-height:1;color:var(--tenue)}
+.mapa h4{font-family:var(--serif);font-size:1.15rem;margin-bottom:3px}
+.mapa p{margin:0;font-size:.96rem}
+.mapa .arrow{color:var(--tenue);font-family:var(--mono);font-size:.8rem}
+/* chip de modulo */
+.chip{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:5px 13px;border-radius:20px;margin-bottom:18px}
+.ch-pipe{background:var(--blue-l);color:var(--blue)} .ch-alg{background:var(--green-l);color:var(--green)}
+.ch-trans{background:var(--rust-l);color:var(--rust)} .ch-cam{background:var(--teal-l);color:var(--teal)}
+.ch-luz{background:var(--gold-l);color:var(--gold)}
+/* términos */
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:22px 0}
+.term{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.bg-crema2 .term{background:var(--crema)}
+.term h4{font-family:var(--mono);font-size:.92rem;font-weight:700;color:var(--texto);margin-bottom:6px}
+.term p{font-size:.93rem;margin:0;line-height:1.5}
+/* callout */
+.callout{border-left:4px solid var(--gold);background:#fff;border-radius:0 14px 14px 0;padding:18px 22px;margin:22px 0;box-shadow:0 1px 0 var(--line)}
+.bg-crema2 .callout{background:var(--crema)}
+.callout .label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:block}
+.callout p{margin:0;color:var(--texto2)}
+.co-key{border-color:var(--gold)} .co-key .label{color:var(--gold)}
+.co-err{border-color:var(--rust)} .co-err .label{color:var(--rust)}
+/* code */
+.code{background:var(--tinta);border-radius:14px;overflow:hidden;margin:20px 0;border:1px solid #322d25}
+.code .bar{display:flex;align-items:center;justify-content:space-between;padding:10px 15px;background:#211d18;border-bottom:1px solid #322d25}
+.code .fname{font-family:var(--mono);font-size:12px;color:#b3aa9b}
+.code .fname .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--rust);margin-right:9px;vertical-align:middle}
+.code .copy{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8a8577;background:transparent;border:1px solid #3a352c;border-radius:7px;padding:5px 12px;cursor:pointer;transition:all .2s}
+.code .copy:hover{color:var(--gold);border-color:var(--gold)} .code .copy.done{color:var(--green);border-color:var(--green)}
+.code pre{margin:0;padding:17px 19px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7}
+.code code{font-family:var(--mono);color:#e8e3d9;white-space:pre}
+.tk{color:#c78ac0} .tf{color:#7fc9c9} .tc{color:#7d776b;font-style:italic} .tn{color:#e0a25e} .ts{color:#9ac97f} .tt{color:#7fa8e0}
+/* autoeval */
+.qq{background:var(--tinta2);border-radius:16px;padding:22px 26px;margin-bottom:16px;border:1px solid #34302a;display:grid;grid-template-columns:52px 1fr;gap:16px;align-items:start}
+.qq .qn{font-family:var(--serif);font-weight:600;font-size:2.2rem;line-height:1;color:var(--gold)}
+.qq p{margin:0;color:#d8d0c4;font-size:1.08rem;line-height:1.45}
+.foot{margin-top:50px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:#6a6459;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<nav id="dots"></nav>
+
+<section id="hero" data-dot="Inicio">
+  <canvas id="heroCv"></canvas>
+  <div class="wrap inner">
+    <div class="eyebrow c-rust">// ISW-412 · Computación Gráfica II · Repaso general</div>
+    <h1>Todo lo visto,<br>en un solo <em class="c-rust">mapa</em></h1>
+    <p class="sub">Del pipeline y los vectores a la cámara, la perspectiva, la iluminación. Un recorrido para consolidar lo aprendido y detectar lo que falta reforzar antes de seguir.</p>
+    <div class="hero-meta">
+      <span>◆ <b>5 bloques temáticos</b></span>
+      <span>◈ <b>Clases 1 · 2 · 3</b></span>
+      <span>✎ <b>Cierra con autoevaluación</b></span>
+    </div>
+  </div>
+  <div class="scrollhint"><span>Desliza</span><span class="arrow">↓</span></div>
+</section>
+
+<!-- MAPA -->
+<section class="bg-crema2" data-dot="El recorrido">
+  <div class="wrap reveal">
+    <div class="eyebrow c-blue">// Cómo se encadena todo</div>
+    <h2>El mapa del <em class="c-blue">recorrido</em></h2>
+    <p class="lead">Cada tema de la materia se apoya en el anterior. Esta es la cadena completa: si una pieza falta, la siguiente se tambalea.</p>
+    <div class="mapa">
+      <div class="paso"><div class="n">1</div><div><h4>El pipeline gráfico</h4><p>Cómo la GPU convierte vértices en píxeles. Define el escenario donde todo lo demás ocurre. <span class="arrow">→ necesita describir puntos con números</span></p></div></div>
+      <div class="paso"><div class="n">2</div><div><h4>Vectores y matrices</h4><p>El idioma para describir y transformar el espacio, incluida la coordenada homogénea <span class="mono-inline">w</span>. <span class="arrow">→ con esto se arman las transformaciones</span></p></div></div>
+      <div class="paso"><div class="n">3</div><div><h4>Transformaciones (matriz Model)</h4><p>Escala, rotación y traslación combinadas colocan cada objeto en el mundo. <span class="arrow">→ falta decidir desde dónde se mira</span></p></div></div>
+      <div class="paso"><div class="n">4</div><div><h4>Cámara y proyección</h4><p>View, perspectiva, el frustum y la división por w completan el viaje hasta la pantalla. <span class="arrow">→ ya se ve, pero sin volumen real</span></p></div></div>
+      <div class="paso"><div class="n">5</div><div><h4>Iluminación y materiales</h4><p>Normales, difusa y especular dan volumen físico a las superficies. <span class="arrow">→ todo esto lo automatiza un motor</span></p></div></div>
+      
+    </div>
+  </div>
+</section>
+
+<!-- BLOQUE 1: PIPELINE -->
+<section class="bg-crema" data-dot="Pipeline">
+  <div class="wrap reveal">
+    <span class="chip ch-pipe">Bloque 1 · El pipeline</span>
+    <h2>Cómo la <em class="c-blue">GPU</em> dibuja</h2>
+    <p class="lead">La GPU es una fábrica en paralelo: entran vértices por un extremo y salen píxeles por el otro. Algunas estaciones de esa línea las programas tú.</p>
+    <div class="terms">
+      <div class="term"><h4>Pipeline gráfico</h4><p>El recorrido fijo vértices → vertex shader → rasterización → fragment shader → pantalla.</p></div>
+      <div class="term"><h4>Vértice</h4><p>Un punto con atributos (posición, color, normal). La materia prima de todo lo que se dibuja.</p></div>
+      <div class="term"><h4>Vertex shader</h4><p>Programa que corre una vez por vértice y lo transforma (lo mueve/proyecta con matrices).</p></div>
+      <div class="term"><h4>Rasterización</h4><p>La GPU decide qué píxeles cubre cada triángulo: pasa de geometría continua a rejilla.</p></div>
+      <div class="term"><h4>Fragment shader</h4><p>Programa que procesa fragmentos y calcula sus salidas (luz, textura). Un fragmento no equivale necesariamente a un píxel final.</p></div>
+      <div class="term"><h4>Doble buffer</h4><p>Se dibuja en una hoja oculta y se muestra ya terminada (<span class="mono-inline">glutSwapBuffers</span>): evita el parpadeo.</p></div>
+    </div>
+    <div class="callout co-key"><span class="label">La idea que lo sostiene todo</span><p>En el pipeline moderno tú no dictas el color de cada píxel: describes datos (vértices, matrices, luces) y la GPU calcula el resultado en paralelo. Describir en vez de dictar.</p></div>
+  </div>
+</section>
+
+<!-- BLOQUE 2: ALGEBRA -->
+<section class="bg-crema2" data-dot="Vectores y matrices">
+  <div class="wrap reveal">
+    <span class="chip ch-alg">Bloque 2 · Álgebra lineal</span>
+    <h2>El <em class="c-green">idioma</em> del espacio</h2>
+    <p class="lead">Vectores para describir, matrices para transformar, y una coordenada extra —la w— que hace que todo encaje en una sola operación.</p>
+    <div class="terms">
+      <div class="term"><h4>Vector</h4><p>Lista ordenada de números. Según el contexto es posición, dirección, color o normal.</p></div>
+      <div class="term"><h4>Producto punto (N·L)</h4><p>Mide cuánto apuntan igual dos vectores. Base de la iluminación difusa.</p></div>
+      <div class="term"><h4>Producto cruz</h4><p>Da un vector perpendicular a otros dos. Con él se calcula la normal de una cara.</p></div>
+      <div class="term"><h4>Matriz</h4><p>Una función que transforma vectores. Multiplicarla por un punto lo mueve a su nueva posición.</p></div>
+      <div class="term"><h4>Coordenadas homogéneas (w)</h4><p>La cuarta coordenada. Permite meter la traslación dentro de la multiplicación de matrices.</p></div>
+      <div class="term"><h4>Identidad</h4><p>La matriz que no transforma nada. El punto de partida (<span class="mono-inline">glLoadIdentity</span>).</p></div>
+    </div>
+    <div class="callout co-key"><span class="label">La idea que lo sostiene todo</span><p><span class="mono-inline">w = 1</span> → es un punto (la traslación lo mueve). <span class="mono-inline">w = 0</span> → es una dirección (la traslación no le afecta). Esa distinción recorre toda la materia, hasta las normales de la iluminación.</p></div>
+    <div class="callout co-err"><span class="label">El error común</span><p>Tratar una dirección (una normal, un rayo de luz) como si fuera un punto. Debe llevar <span class="mono-inline">w = 0</span>, o la traslación la "arrastra" y los cálculos salen mal.</p></div>
+  </div>
+</section>
+
+<!-- BLOQUE 3: TRANSFORMACIONES -->
+<section class="bg-crema" data-dot="Transformaciones">
+  <div class="wrap reveal">
+    <span class="chip ch-trans">Bloque 3 · Transformaciones</span>
+    <h2>La matriz <em class="c-rust">Model</em></h2>
+    <p class="lead">Escala, rotación y traslación se combinan en una sola matriz que coloca cada objeto en el mundo. El orden en que se combinan importa.</p>
+    <div class="terms">
+      <div class="term"><h4>Traslación (T)</h4><p>Mueve sin deformar. Posible gracias a la w.</p></div>
+      <div class="term"><h4>Rotación (R)</h4><p>Gira alrededor de un eje usando senos y cosenos.</p></div>
+      <div class="term"><h4>Escala (S)</h4><p>Estira o encoge multiplicando cada eje por un factor.</p></div>
+      <div class="term"><h4>Matriz Model</h4><p><span class="mono-inline">T · R · S</span>: coloca el objeto. Se lee de derecha a izquierda.</p></div>
+      <div class="term"><h4>Composición</h4><p>Multiplicar matrices encadena transformaciones en una sola.</p></div>
+      <div class="term"><h4>Pila de matrices</h4><p><span class="mono-inline">glPushMatrix/glPopMatrix</span>: transformaciones relativas (el sistema solar).</p></div>
+    </div>
+    <div class="code">
+      <div class="bar"><span class="fname"><span class="dot"></span>model.c</span><button class="copy">Copiar</button></div>
+      <pre><code><span class="tc">// La Model se escribe T, R, S -> se aplica de derecha a izquierda:</span>
+<span class="tc">// primero escala, luego rota, al final traslada.</span>
+glTranslatef(2.0f, 0.0f, 0.0f);   <span class="tc">// T</span>
+glRotatef(45.0f, 0, 0, 1);        <span class="tc">// R</span>
+glScalef(1.5f, 1.5f, 1.0f);       <span class="tc">// S</span>
+dibujarObjeto();</code></pre>
+    </div>
+    <div class="callout co-err"><span class="label">El error común</span><p>Creer que <span class="mono-inline">T · R = R · T</span>. La multiplicación de matrices <strong>no es conmutativa</strong>: "rotar y luego mover" cae en otro lugar que "mover y luego rotar".</p></div>
+  </div>
+</section>
+
+<!-- BLOQUE 4: CAMARA -->
+<section class="bg-crema2" data-dot="Cámara y proyección">
+  <div class="wrap reveal">
+    <span class="chip ch-cam">Bloque 4 · Cámara y proyección</span>
+    <h2>El viaje hasta la <em class="c-teal">pantalla</em></h2>
+    <p class="lead">Local → Model → View → Projection → ÷w → NDC → Viewport. La Model coloca; hoy se suman la cámara, la perspectiva y las reglas que ordenan lo que se ve.</p>
+    <div class="terms">
+      <div class="term"><h4>Matriz View (gluLookAt)</h4><p>La cámara: eye, center, up. "No se mueve la cámara, se mueve el mundo".</p></div>
+      <div class="term"><h4>Ortográfica</h4><p>Paralelas siguen paralelas; lo lejano no se encoge. CAD, planos.</p></div>
+      <div class="term"><h4>Perspectiva (gluPerspective)</h4><p><span class="mono-inline">fovy, aspect, near, far</span>: lo lejano se ve pequeño. Define el frustum.</p></div>
+      <div class="term"><h4>Frustum</h4><p>La pirámide truncada de lo visible. Fuera de ella, se descarta.</p></div>
+      <div class="term"><h4>División por w</h4><p>Encoge lo lejano. El mecanismo real de la perspectiva (el punto de fuga).</p></div>
+      <div class="term"><h4>Z-buffer</h4><p>Guarda la profundidad por píxel: lo cercano tapa lo lejano. <span class="mono-inline">GL_DEPTH_TEST</span>.</p></div>
+      <div class="term"><h4>NDC + viewport</h4><p>Cubo normalizado [-1,1] que el viewport estira a los píxeles de la ventana.</p></div>
+      <div class="term"><h4>Backface culling</h4><p>No dibujar las caras que miran al lado opuesto. Ahorra trabajo.</p></div>
+    </div>
+    <div class="callout co-err"><span class="label">El error común</span><p>Poner <span class="mono-inline">near = 0</span> en <span class="mono-inline">gluPerspective</span> (la proyección se indefine), o olvidar activar el Z-buffer: el cubo se ve "al revés", con caras traseras encima.</p></div>
+  </div>
+</section>
+
+<!-- BLOQUE 5: ILUMINACION -->
+<section class="bg-crema" data-dot="Iluminación">
+  <div class="wrap reveal">
+    <span class="chip ch-luz">Bloque 5 · Iluminación</span>
+    <h2>Del color plano a la <em class="c-gold">luz</em></h2>
+    <p class="lead">En vez de pintar el brillo a mano, describes la luz y el material; OpenGL calcula el color de cada cara según su normal.</p>
+    <div class="terms">
+      <div class="term"><h4>Normal</h4><p>Vector perpendicular a la cara (w=0). Dice hacia dónde "mira" la superficie.</p></div>
+      <div class="term"><h4>Componente ambiente</h4><p>Luz de relleno constante. Evita que las sombras sean negro total.</p></div>
+      <div class="term"><h4>Componente difusa</h4><p><span class="mono-inline">max(0, N·L)</span>: el brillo mate según el ángulo a la luz. Da la forma.</p></div>
+      <div class="term"><h4>Componente especular</h4><p>El reflejo brillante; depende de dónde está tu ojo. Da el aspecto pulido.</p></div>
+      <div class="term"><h4>Modelo de Phong</h4><p>Suma ambiente + difusa + especular para el color final.</p></div>
+      <div class="term"><h4>Plano vs. suave</h4><p>Normal por cara (facetado) o por vértice (suave, interpolando normales).</p></div>
+    </div>
+    <div class="code">
+      <div class="bar"><span class="fname"><span class="dot"></span>difusa.c</span><button class="copy">Copiar</button></div>
+      <pre><code><span class="tc">// La componente difusa es un producto punto (Clase 1):</span>
+brillo = max(<span class="tn">0</span>, N · L);
+<span class="tc">// N = normal de la cara (normalizada)</span>
+<span class="tc">// L = direccion hacia la luz (normalizada)</span>
+<span class="tc">// = 1 si la cara mira directo a la luz; 0 si esta de lado</span></code></pre>
+    </div>
+    <div class="callout co-key"><span class="label">La idea que lo sostiene todo</span><p>La iluminación no es un tema nuevo: la normal es un <strong>producto cruz</strong> y la difusa es un <strong>producto punto</strong>. Son tus vectores del primer día puestos a trabajar.</p></div>
+    <div class="callout co-err"><span class="label">El error común</span><p>Activar <span class="mono-inline">GL_LIGHTING</span> y olvidar las normales: todo se ve de un brillo plano y uniforme, o completamente negro.</p></div>
+  </div>
+</section>
+
+<!-- BLOQUE 6: UNITY -->
+
+
+<!-- AUTOEVALUACION -->
+<section class="bg-dark" data-dot="Autoevaluación">
+  <div class="wrap reveal">
+    <div class="eyebrow c-gold">// Si puedes responderlas con tus palabras, dominas la materia</div>
+    <h2>Cinco preguntas de <em class="c-gold">autoevaluación</em></h2>
+    <p style="margin-bottom:30px">No son de selección. Respóndelas en voz alta o por escrito; si puedes dar el <strong>porqué</strong>, no solo el qué, vas bien. La sección Entender de GráficLab incluye referencias razonadas para los conceptos.</p>
+    <div class="qq"><div class="qn">1</div><p>¿Por qué las coordenadas homogéneas (la <span class="mono-inline">w</span>) permiten combinar escala, rotación y traslación en una sola matriz? ¿Qué distingue a <span class="mono-inline">w = 1</span> de <span class="mono-inline">w = 0</span>?</p></div>
+    <div class="qq"><div class="qn">2</div><p>¿Por qué el orden importa al multiplicar matrices? Explícalo usando la cadena <span class="mono-inline">projection · view · model</span>.</p></div>
+    <div class="qq"><div class="qn">3</div><p>¿Cómo logra la proyección en perspectiva que los objetos lejanos se vean más pequeños? ¿Qué papel juega la <span class="mono-inline">w</span> aquí?</p></div>
+    <div class="qq"><div class="qn">4</div><p>¿Qué es la matriz View y por qué decimos que "la cámara no se mueve, se mueve el mundo"?</p></div>
+    <div class="qq"><div class="qn">5</div><p>¿Cómo se calcula la componente difusa de la iluminación y por qué la normal es imprescindible para ello?</p></div>
+    
+    <div class="foot">Computación Gráfica II · ISW-412 · Pieza 1 de 3 · Documento de repaso general</div>
+  </div>
+</section>
+
+<script>
+const progress=document.getElementById('progress');
+function up(){const h=document.documentElement;progress.style.width=Math.min(100,Math.max(0,(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100))+'%';}
+addEventListener('scroll',up,{passive:true});addEventListener('resize',up);
+const sections=[...document.querySelectorAll('section[data-dot]')];
+const dots=document.getElementById('dots');
+sections.forEach((s,i)=>{if(!s.id)s.id='s'+i;const a=document.createElement('a');a.href='#'+s.id;a.innerHTML='<span>'+s.dataset.dot+'</span>';dots.appendChild(a);});
+const dE=[...dots.children];
+new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){const i=sections.indexOf(e.target);dE.forEach(d=>d.classList.remove('active'));if(dE[i])dE[i].classList.add('active');}});},{rootMargin:'-45% 0px -45% 0px'}).observe&&sections.forEach(s=>{});
+const o=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){const i=sections.indexOf(e.target);dE.forEach(d=>d.classList.remove('active'));if(dE[i])dE[i].classList.add('active');}});},{rootMargin:'-45% 0px -45% 0px'});sections.forEach(s=>o.observe(s));
+const r=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');r.unobserve(e.target);}});},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>r.observe(el));
+document.querySelectorAll('.code .copy').forEach(b=>b.addEventListener('click',()=>{navigator.clipboard.writeText(b.closest('.code').querySelector('code').innerText).then(()=>{b.textContent='¡Copiado!';b.classList.add('done');setTimeout(()=>{b.textContent='Copiar';b.classList.remove('done');},1500);});}));
+/* fondo animado del hero: puntos que orbitan (guiño al tema) */
+(function(){const cv=document.getElementById('heroCv');if(!cv)return;const ctx=cv.getContext('2d');let w,h;
+function size(){w=cv.width=cv.offsetWidth;h=cv.height=cv.offsetHeight;}size();addEventListener('resize',size);
+const pts=[];for(let i=0;i<34;i++)pts.push({a:Math.random()*6.28,r:40+Math.random()*260,s:0.0004+Math.random()*0.0012,o:0.15+Math.random()*0.3});
+const col=['#b5502a','#2d5a9e','#1d6b6b','#a67c00','#6d3b6b'];
+function loop(){ctx.clearRect(0,0,w,h);const cx=w*0.78,cy=h*0.4;
+ pts.forEach((p,i)=>{p.a+=p.s;const x=cx+Math.cos(p.a)*p.r,y=cy+Math.sin(p.a)*p.r*0.6;
+  ctx.fillStyle=col[i%col.length];ctx.globalAlpha=p.o;ctx.beginPath();ctx.arc(x,y,2.5,0,6.3);ctx.fill();});
+ ctx.globalAlpha=1;requestAnimationFrame(loop);}loop();})();
+up();
+</script>
+</body>
+</html>

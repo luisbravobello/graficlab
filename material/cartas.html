@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computación Gráfica II · ¿Qué es esto? — Juego de repaso</title>
+
+
+
+<style>
+:root{
+  --crema:#faf8f5; --crema2:#f2eee7; --tinta:#1c1a17; --tinta2:#26221c;
+  --texto:#1c1a17; --texto2:#4a453e; --tenue:#8a8073;
+  --plum:#6d3b6b; --teal:#1d6b6b; --rust:#b5502a; --gold:#a67c00; --blue:#2d5a9e; --green:#3a6b35;
+  --line:#e6ddcf;
+  --serif:'Fraunces',Georgia,serif; --sans:'Outfit',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--crema);color:var(--texto);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+#progress{position:fixed;top:0;left:0;height:4px;width:0%;z-index:100;background:linear-gradient(90deg,var(--plum),var(--blue),var(--teal),var(--green),var(--gold),var(--rust));transition:width .3s}
+.app{max-width:760px;margin:0 auto;padding:30px 24px 60px;min-height:100vh;display:flex;flex-direction:column}
+header{text-align:center;margin-bottom:22px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--tenue);margin-bottom:10px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.05;letter-spacing:-.02em}
+h1 em{font-style:italic;color:var(--rust)}
+.counter{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--texto2);text-align:center;margin-bottom:14px}
+/* carta */
+.card-stage{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:380px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:38px 34px;box-shadow:0 14px 40px rgba(28,26,23,.1);position:relative;transition:transform .25s,box-shadow .25s}
+.card .badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;padding:6px 14px;border-radius:20px;margin-bottom:22px}
+.card .tipo{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue);margin-bottom:10px}
+.card .term{font-family:var(--serif);font-weight:600;font-size:clamp(1.6rem,4.6vw,2.4rem);line-height:1.15;color:var(--texto)}
+.card .term.mono{font-family:var(--mono);font-weight:700;font-size:clamp(1.3rem,4vw,2rem)}
+.card .escenario{font-size:clamp(1.15rem,3.2vw,1.45rem);line-height:1.4;color:var(--texto);font-weight:400}
+.reveal-box{margin-top:24px;border-top:1px dashed var(--line);padding-top:20px;display:none}
+.reveal-box.show{display:block;animation:fade .4s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.reveal-box .rtitle{font-family:var(--serif);font-weight:600;font-size:1.3rem;margin-bottom:8px;color:var(--rust)}
+.reveal-box p{color:var(--texto2);font-size:1rem;margin:0}
+.mono-inline{font-family:var(--mono);font-size:.85em;background:rgba(0,0,0,.05);padding:2px 6px;border-radius:5px;color:var(--texto)}
+/* controles */
+.controls{display:flex;gap:10px;margin-top:24px;align-items:center}
+.btn{font-family:var(--sans);font-size:.95rem;font-weight:500;padding:14px 18px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--texto);cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#c9bfae}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-main{flex:1;background:var(--tinta);color:var(--crema);border-color:var(--tinta);font-family:var(--mono);font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
+.btn-main:hover{background:#000}
+.btn-nav{width:54px;font-size:1.3rem;line-height:1}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-family:var(--mono);font-size:11px;color:var(--tenue)}
+.toolbar button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:1px solid var(--line);border-radius:20px;padding:7px 14px;color:var(--texto2);cursor:pointer;transition:all .2s}
+.toolbar button:hover{border-color:var(--rust);color:var(--rust)}
+.hint{font-family:var(--mono);font-size:10.5px;color:var(--tenue);text-align:center;margin-top:14px}
+.hint b{color:var(--texto2)}
+/* final */
+#fin{display:none;text-align:center;padding:50px 20px}
+#fin.show{display:block;animation:fade .5s ease}
+#fin .big{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,6vw,3.2rem);color:var(--texto);margin-bottom:14px}
+#fin .big em{font-style:italic;color:var(--green)}
+#fin p{color:var(--texto2);margin-bottom:26px}
+.foot{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--tenue);text-transform:uppercase;text-align:center;margin-top:30px}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="app">
+  <header>
+    <div class="eyebrow">// ISW-412 · Repaso activo</div>
+    <h1>¿Qué es <em>esto</em>?</h1>
+  </header>
+
+  <div class="counter" id="counter">Carta 1 / 21</div>
+
+  <div class="card-stage">
+    <div class="card" id="card">
+      <span class="badge" id="badge">Bloque</span>
+      <div class="tipo" id="tipo">Etiqueta</div>
+      <div class="term" id="term">—</div>
+      <div class="reveal-box" id="revealBox">
+        <div class="rtitle" id="rtitle"></div>
+        <p id="rtext"></p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-nav" id="prev" title="Anterior (←)">←</button>
+      <button class="btn btn-main" id="reveal">Revelar respuesta</button>
+      <button class="btn btn-nav" id="next" title="Siguiente (→)">→</button>
+    </div>
+
+    <div class="toolbar">
+      <button id="shuffle">🔀 Barajar</button>
+      <span id="cat"></span>
+      <button id="restart">↺ Reiniciar</button>
+    </div>
+    <div class="hint">Atajos: <b>Espacio</b> revela · <b>←</b> <b>→</b> navegan</div>
+  </div>
+
+  <div id="fin">
+    <div class="big">¡Repaso <em>completo</em>!</div>
+    <p>Recorriste las 21 cartas. ¿Las dijiste todas antes de revelar? Baraja y vuelve a intentarlo: el objetivo es responder sin dudar.</p>
+    <button class="btn btn-main" style="max-width:260px;margin:0 auto" id="again">Jugar de nuevo</button>
+  </div>
+
+  <div class="foot">Computación Gráfica II · ISW-412 · Pieza 3 de 3 · Juego de cartas</div>
+</div>
+
+<script>
+const CATS={
+  pipe:{n:'Pipeline', c:'#2d5a9e', bg:'#e5edf8'},
+  alg:{n:'Álgebra', c:'#3a6b35', bg:'#e7f0e5'},
+  trans:{n:'Transformaciones', c:'#b5502a', bg:'#f8e9e1'},
+  cam:{n:'Cámara/Proyección', c:'#1d6b6b', bg:'#e1efef'},
+  luz:{n:'Iluminación', c:'#a67c00', bg:'#f5eed7'},
+};
+// tipo: 'etq' (etiqueta/término) | 'esc' (escenario/síntoma)
+const CARTAS=[
+  // Pipeline
+  {cat:'pipe',tipo:'etq',mono:true,t:'glBegin / glEnd',rt:'Delimitar primitivas',rx:'Marcan el inicio y fin de la lista de vértices que se envían a la GPU para dibujar una primitiva (triángulos, quads, líneas).'},
+  {cat:'pipe',tipo:'etq',mono:false,t:'Vertex shader',rt:'Transforma vértices',rx:'Programa que corre una vez por vértice y lo mueve/proyecta con las matrices. Es la etapa programable donde vive tu matemática.'},
+  {cat:'pipe',tipo:'esc',t:'La imagen parpadea mientras se dibuja, como si se formara a la vista.',rt:'Falta doble buffer',rx:'Se está dibujando en pantalla directamente. La solución es GLUT_DOUBLE + glutSwapBuffers: dibujar en una hoja oculta y mostrarla ya lista.'},
+  {cat:'pipe',tipo:'etq',mono:false,t:'Rasterización',rt:'Geometría → píxeles',rx:'La etapa donde la GPU decide qué píxeles cubre cada triángulo, pasando de geometría continua a una rejilla de píxeles.'},
+  // Álgebra
+  {cat:'alg',tipo:'etq',mono:true,t:'w = 0',rt:'Es una dirección',rx:'Un vector con w=0 representa una dirección, no una posición: la traslación no le afecta. Así se tratan las normales y los rayos de luz.'},
+  {cat:'alg',tipo:'etq',mono:true,t:'N · L',rt:'Producto punto',rx:'Mide cuánto apuntan igual dos vectores. Vale 1 si coinciden, 0 si son perpendiculares. Es la base de la iluminación difusa.'},
+  {cat:'alg',tipo:'etq',mono:false,t:'Producto cruz',rt:'Vector perpendicular',rx:'Da un vector perpendicular a otros dos. Con él se calcula la normal de una cara a partir de dos de sus aristas.'},
+  {cat:'alg',tipo:'esc',t:'Quieres mover un punto sumándole un desplazamiento, pero también rotarlo, todo en una sola operación.',rt:'Coordenadas homogéneas (w)',rx:'Agregar la coordenada w convierte la traslación (una suma) en parte de la multiplicación de matrices, permitiendo combinar todo en una matriz.'},
+  {cat:'alg',tipo:'etq',mono:true,t:'glLoadIdentity()',rt:'Matriz identidad',rx:'Reinicia la matriz activa a la identidad: "no transformes nada". El punto de partida antes de componer transformaciones.'},
+  // Transformaciones
+  {cat:'trans',tipo:'etq',mono:true,t:'T · R · S',rt:'Matriz Model',rx:'La combinación que coloca un objeto en el mundo. Se lee de derecha a izquierda: primero escala, luego rota, al final traslada.'},
+  {cat:'trans',tipo:'esc',t:'Dos objetos usan los mismos números de rotación y traslación, pero terminan en lugares distintos.',rt:'El orden importa (no conmuta)',rx:'La multiplicación de matrices no es conmutativa: T·R ≠ R·T. Cambiar el orden de las transformaciones cambia el resultado.'},
+  {cat:'trans',tipo:'etq',mono:true,t:'glPushMatrix / glPopMatrix',rt:'Pila de matrices',rx:'Guardan y restauran la matriz actual. Permiten transformaciones relativas (anidadas), como la luna que orbita el planeta que orbita el sol.'},
+  {cat:'trans',tipo:'etq',mono:true,t:'glRotatef(a, 0,0,1)',rt:'Rotación en Z',rx:'Rota "a" grados alrededor del eje Z. Multiplica la matriz actual por la matriz de rotación R.'},
+  // Cámara / proyección
+  {cat:'cam',tipo:'etq',mono:true,t:'gluLookAt',rt:'Matriz View (la cámara)',rx:'Construye la cámara a partir de eye, center y up. "No se mueve la cámara, se mueve el mundo".'},
+  {cat:'cam',tipo:'etq',mono:true,t:'gluPerspective(fovy, aspect, near, far)',rt:'Proyección en perspectiva',rx:'Define el frustum: lo lejano se ve pequeño. near nunca debe ser 0; aspect debe coincidir con la ventana.'},
+  {cat:'cam',tipo:'esc',t:'Un cubo 3D se ve "al revés": caras traseras dibujadas encima de las delanteras.',rt:'Falta el Z-buffer',rx:'Falta GLUT_DEPTH, glEnable(GL_DEPTH_TEST) y limpiar GL_DEPTH_BUFFER_BIT. Sin test de profundidad se dibuja en orden de instrucciones, no por cercanía.'},
+  {cat:'cam',tipo:'esc',t:'Estiras la ventana y todos los círculos se ven como elipses achatadas.',rt:'Aspect ratio incorrecto',rx:'El aspect pasado a gluPerspective no coincide con ancho/alto real. Se corrige recalculándolo en reshape(w,h).'},
+  {cat:'cam',tipo:'esc',t:'Catorce objetos idénticos se ven todos del mismo tamaño sin importar su distancia.',rt:'Proyección ortográfica',rx:'En ortográfica no hay división por w, así que lo lejano no se encoge. Es la vista de un plano técnico.'},
+  // Iluminación
+  {cat:'luz',tipo:'etq',mono:false,t:'Componente especular',rt:'El brillo reflejado',rx:'El punto de luz brillante que depende de dónde está tu ojo. Da el aspecto pulido o húmedo. Su dureza controla qué tan concentrado es.'},
+  {cat:'luz',tipo:'esc',t:'Activaste GL_LIGHTING y todo se ve de un brillo plano y uniforme, sin volumen.',rt:'Faltan las normales',rx:'Sin una normal por cara (glNormal3f), OpenGL no distingue la orientación de cada superficie y todas reciben el mismo brillo.'},
+  {cat:'luz',tipo:'esc',t:'Quieres que una esfera se vea lisa en vez de facetada como un diamante.',rt:'Sombreado suave (normal por vértice)',rx:'Se usan normales por vértice (promediadas) que se interpolan entre vértices. La misma interpolación del degradado de color.'},
+];
+
+let orden=CARTAS.map((_,i)=>i);
+let idx=0, revelado=false;
+const $=id=>document.getElementById(id);
+
+function render(){
+  $('fin').classList.remove('show');
+  document.querySelector('.card-stage').style.display='flex';
+  const c=CARTAS[orden[idx]];
+  const cat=CATS[c.cat];
+  $('counter').textContent='Carta '+(idx+1)+' / '+orden.length;
+  $('progress').style.width=((idx)/(orden.length-1)*100)+'%';
+  const badge=$('badge');
+  badge.textContent=cat.n; badge.style.background=cat.bg; badge.style.color=cat.c;
+  $('tipo').textContent = c.tipo==='etq' ? '¿Qué es / para qué sirve?' : 'Identifica el concepto';
+  const term=$('term');
+  term.className='term'+((c.tipo==='etq'&&c.mono)?' mono':'');
+  term.classList.toggle('escenario', c.tipo==='esc');
+  term.textContent=c.t;
+  $('rtitle').textContent=c.rt;
+  $('rtext').textContent=c.rx;
+  $('revealBox').classList.remove('show');
+  revelado=false;
+  $('reveal').textContent='Revelar respuesta';
+  $('cat').textContent=cat.n;
+  $('prev').disabled=(idx===0);
+}
+function revelar(){
+  if(revelado) return;
+  $('revealBox').classList.add('show');
+  revelado=true;
+  $('reveal').textContent='✓ Revelada';
+}
+function next(){
+  if(idx<orden.length-1){idx++;render();}
+  else finar();
+}
+function prev(){ if(idx>0){idx--;render();} }
+function finar(){
+  document.querySelector('.card-stage').style.display='none';
+  $('fin').classList.add('show');
+  $('progress').style.width='100%';
+  $('counter').textContent='Completado';
+}
+function shuffle(){
+  for(let i=orden.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[orden[i],orden[j]]=[orden[j],orden[i]];}
+  idx=0;render();
+}
+function restart(){ orden=CARTAS.map((_,i)=>i); idx=0; render(); }
+
+$('reveal').onclick=revelar;
+$('next').onclick=next;
+$('prev').onclick=prev;
+$('shuffle').onclick=shuffle;
+$('restart').onclick=restart;
+$('again').onclick=()=>{shuffle();};
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault(); if(!revelado) revelar(); else next();}
+  else if(e.code==='ArrowRight') next();
+  else if(e.code==='ArrowLeft') prev();
+});
+render();
+</script>
+</body>
+</html>

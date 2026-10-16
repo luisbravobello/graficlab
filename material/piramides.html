@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta name="robots" content="noindex,nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica 7 · La coordenada Z</title>
+
+
+
+<style>
+:root{
+  --cream:#faf8f5; --cream2:#f1ece4; --ink:#1c1a17; --ink2:#4a4640; --muted:#7a746b;
+  --plum:#6d3b6b; --plum-l:#f1e6f0; --teal:#1d6b6b; --teal-l:#e2f0ef;
+  --rust:#b5502a; --rust-l:#f8e7df; --gold:#a67c00; --gold-l:#f6eed6;
+  --blue:#2d5a9e; --blue-l:#e4ecf7; --green:#3a6b35; --green-l:#e5efe3;
+  --line:#e2dbd0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:'Outfit',sans-serif;font-size:17px;line-height:1.7;font-weight:300;overflow-x:hidden}
+strong{font-weight:500}
+code.i{font-family:'JetBrains Mono',monospace;font-size:.85em;background:var(--cream2);padding:.1em .4em;border-radius:4px;color:var(--plum)}
+.dark code.i{background:#2c2925;color:#e7c6e5}
+
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:100;background:linear-gradient(90deg,var(--plum),var(--teal),var(--rust),var(--gold))}
+#dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;gap:12px}
+#dots a{width:9px;height:9px;border-radius:50%;background:#cfc7ba;display:block;transition:.3s;position:relative}
+#dots a.on{background:var(--rust);transform:scale(1.5)}
+#dots a span{position:absolute;right:18px;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--ink);color:var(--cream);padding:3px 8px;border-radius:4px;opacity:0;pointer-events:none;transition:.2s}
+#dots a:hover span{opacity:1}
+@media(max-width:760px){#dots{display:none}}
+
+section{padding:110px 24px;position:relative}
+section.alt{background:var(--cream2)}
+section.dark{background:var(--ink);color:#ede7dd}
+.wrap{max-width:860px;margin:0 auto}
+.wide{max-width:1060px;margin:0 auto}
+
+.label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--rust);display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.label::before{content:"";width:28px;height:1px;background:currentColor}
+.dark .label{color:#e59a78}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:300;line-height:1.1;letter-spacing:-.01em}
+h1 em,h2 em,h3 em{font-style:italic;font-weight:400;color:var(--plum)}
+.dark h2 em{color:#e0a8dd}
+h2{font-size:clamp(34px,5vw,54px);margin-bottom:26px}
+h3{font-size:26px;margin:44px 0 14px}
+p{margin-bottom:18px;color:var(--ink2)}
+.dark p{color:#cfc8bc}
+.lead{font-size:20px;color:var(--ink2)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:80px 24px}
+.hero .eyebrow{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:28px}
+.hero h1{font-size:clamp(52px,9vw,112px);margin-bottom:30px}
+.hero .sub{font-size:clamp(19px,2.2vw,23px);max-width:640px;color:var(--ink2)}
+.hint{margin-top:60px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--muted);animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(6px)}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* callouts */
+.callout{border-left:3px solid var(--plum);background:var(--plum-l);padding:20px 24px;margin:28px 0;border-radius:0}
+.callout .t{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--plum);margin-bottom:6px;font-weight:500}
+.callout p{margin:0;color:var(--ink)}
+.callout.tip{border-color:var(--teal);background:var(--teal-l)}.callout.tip .t{color:var(--teal)}
+.callout.warn{border-color:var(--rust);background:var(--rust-l)}.callout.warn .t{color:var(--rust)}
+.callout.key{border-color:var(--gold);background:var(--gold-l)}.callout.key .t{color:var(--gold)}
+.dark .callout{background:#2a2622}.dark .callout p{color:#e6dfd3}
+
+/* analogy */
+.analogy{display:flex;gap:0;border-radius:14px;overflow:hidden;margin:30px 0;background:#fff;border:1px solid var(--line)}
+.analogy .ic{flex:0 0 120px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:52px}
+.analogy .tx{padding:24px 28px}
+.analogy .tx .t{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.analogy .tx p{margin:0}
+@media(max-width:560px){.analogy{flex-direction:column}.analogy .ic{flex-basis:90px}}
+
+/* pills */
+.pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin:30px 0}
+.pill{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;transition:transform .3s,box-shadow .3s}
+.pill:hover{transform:translateY(-5px);box-shadow:0 14px 30px -18px rgba(28,26,23,.35)}
+.pill .e{font-size:28px;margin-bottom:8px}
+.pill h4{font-family:'Fraunces',serif;font-weight:500;font-size:20px;margin-bottom:6px}
+.pill p{font-size:15px;margin:0}
+.alt .pill{background:var(--cream)}
+
+/* steps */
+.steps{counter-reset:s;margin:30px 0}
+.step{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:18px 0;border-top:1px solid var(--line)}
+.step::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:'Fraunces',serif;font-size:40px;font-style:italic;color:var(--rust);line-height:1}
+.step h4{font-weight:500;font-size:18px;margin-bottom:4px}
+.step p{margin:0;font-size:16px}
+
+/* tables */
+table{width:100%;border-collapse:collapse;margin:24px 0;font-size:15px}
+th{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-align:left;color:var(--muted);font-weight:500;padding:10px 12px;border-bottom:2px solid var(--ink)}
+td{padding:10px 12px;border-bottom:1px solid var(--line)}
+td.m{font-family:'JetBrains Mono',monospace;font-size:14px}
+.dark th{color:#a9a196;border-color:#ede7dd}.dark td{border-color:#3a3530}
+
+/* figure */
+figure{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin:30px 0}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:14px;color:var(--muted);margin-top:10px;text-align:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+/* code */
+.code{background:var(--ink);border-radius:12px;overflow:hidden;margin:26px 0;box-shadow:0 20px 40px -28px rgba(0,0,0,.5)}
+.code .bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#2a2622;font-family:'JetBrains Mono',monospace;font-size:12px;color:#a9a196}
+.code .bar .dots::before{content:"● ● ●";letter-spacing:3px;color:#5a534b;margin-right:12px}
+.code button{font-family:'JetBrains Mono',monospace;font-size:11px;background:transparent;color:#e59a78;border:1px solid #5a4a40;border-radius:6px;padding:4px 10px;cursor:pointer}
+.code button:hover{background:#3a3028}
+.code pre{padding:20px 22px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.65;color:#ede7dd}
+.k{color:#e0a8dd}.ty{color:#7fc4c0}.fn{color:#f0c46a}.n{color:#f29a70}.cm{color:#8a8276;font-style:italic}.s{color:#a6d49c}.pp{color:#8fb4ea}.c{color:#8fb4ea}
+
+/* evidence */
+.ev{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin:30px 0}
+.ev .card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ev .card .stripe{height:5px}
+.ev .card .in{padding:22px}
+.ev .card h4{font-family:'Fraunces',serif;font-weight:500;font-size:20px;margin-bottom:8px}
+.ev .card p{font-size:15px}
+.ev .card .box{background:var(--cream2);border-radius:8px;padding:12px 14px;font-size:14px;color:var(--ink)}
+.ev .card .box b{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;display:block;color:var(--muted);font-weight:500;margin-bottom:3px}
+
+/* demo */
+.demo{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin:30px 0}
+.dark .demo{background:#26231f;border-color:#3a3530}
+.demo canvas{width:100%;display:block;border-radius:10px;background:#87b5db}
+.controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;margin-top:16px}
+.btn{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--cream);color:var(--ink);cursor:pointer;transition:.2s}
+.btn.on{background:var(--rust);border-color:var(--rust);color:#fff}
+.dark .btn{background:#1c1a17;color:#ede7dd;border-color:#4a443d}.dark .btn.on{background:var(--rust);border-color:var(--rust)}
+.ctl{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.ctl input[type=range]{accent-color:var(--rust);width:140px}
+.readout{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--teal);background:var(--teal-l);padding:10px 14px;border-radius:8px}
+.dark .readout{background:#1f2e2d;color:#9fd6d2}
+
+/* formula */
+.formula{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:30px 0}
+.formula .f{border:1px solid #3a3530;border-radius:14px;padding:24px}
+.formula .f .t{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.formula .eq{font-family:'Fraunces',serif;font-size:28px;font-style:italic;margin:10px 0 12px;color:#fff}
+@media(max-width:700px){.formula{grid-template-columns:1fr}}
+
+/* quiz */
+.q{background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:24px;margin:20px 0}
+.q h4{font-weight:500;font-size:18px;margin-bottom:14px}
+.q .opts{display:grid;gap:8px}
+.q button{text-align:left;font-family:'Outfit',sans-serif;font-size:16px;padding:11px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;transition:.2s;color:var(--ink)}
+.q button:hover{border-color:var(--ink2)}
+.q button.ok{background:var(--green-l);border-color:var(--green);color:var(--green)}
+.q button.bad{background:var(--rust-l);border-color:var(--rust);color:var(--rust)}
+.q .fb{margin-top:12px;font-size:15px;display:none}
+.q .fb.show{display:block}
+
+/* closing */
+.closing{min-height:100vh;display:flex;align-items:center;text-align:center}
+.closing h2{font-size:clamp(40px,7vw,78px)}
+.closing .pills{text-align:left}
+.closing .pill{background:#26231f;border-color:#3a3530}
+.closing .pill h4{color:#fff}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<nav id="dots"></nav>
+
+<!-- HERO -->
+<section class="hero" id="inicio" data-title="Inicio">
+  <div class="wide">
+    <div class="eyebrow reveal">ISW-412 · Computación Gráfica II · Práctica 7</div>
+    <h1 class="reveal">Pirámides en el <em>desierto</em></h1>
+    <p class="sub reveal">Del cubo que dibujaste en papel a una escena 3D completa. Aquí entenderás cómo la coordenada Z decide qué está cerca, qué está lejos y qué queda escondido detrás.</p>
+    <div class="hint reveal">DESLIZA ↓</div>
+  </div>
+</section>
+
+<!-- 01 CUBO -->
+<section class="alt" id="cubo" data-title="El cubo en papel">
+  <div class="wrap">
+    <div class="label reveal">01 · El punto de partida</div>
+    <h2 class="reveal">Un cubo en <em>papel</em></h2>
+    <p class="lead reveal">Antes de programar, dibujamos a mano un cubo de lado 1 centrado en el origen, dentro del volumen de visión de <code class="i">glOrtho(-1, 1, -1, 1, -1, 1)</code>. Ese cubo es la llave para entender toda la práctica.</p>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 380 430" role="img" aria-label="Cubo con vértices A a H en ejes 3D">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#4a4640" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+        <rect x="60" y="50" width="240" height="240" fill="none" stroke="#b9b1a4" stroke-width="0.8" stroke-dasharray="3 4"/>
+        <g stroke="#4a4640" stroke-width="1" fill="none">
+          <line x1="30" y1="170" x2="345" y2="170" marker-end="url(#ar)"/>
+          <line x1="180" y1="325" x2="180" y2="18" marker-end="url(#ar)"/>
+          <line x1="245" y1="105" x2="112" y2="238" marker-end="url(#ar)"/>
+        </g>
+        <g font-family="Outfit" font-size="15" font-weight="600" fill="#1c1a17">
+          <text x="350" y="175">X</text><text x="188" y="24">Y</text><text x="98" y="234">Z</text>
+        </g>
+        <g font-family="JetBrains Mono" font-size="11" fill="#7a746b">
+          <text x="44" y="188">-1</text><text x="304" y="188">1</text><text x="166" y="46">1</text><text x="186" y="306">-1</text>
+        </g>
+        <g stroke="#b5502a" stroke-width="1.2" stroke-dasharray="4 3" fill="none">
+          <line x1="141" y1="209" x2="261" y2="209"/><line x1="141" y1="209" x2="141" y2="89"/><line x1="141" y1="209" x2="99" y2="251"/>
+        </g>
+        <g stroke="#6d3b6b" stroke-width="2.2" fill="none" stroke-linejoin="round">
+          <polygon points="99,251 219,251 219,131 99,131" fill="rgba(109,59,107,.07)"/>
+          <polyline points="219,251 261,209 261,89 141,89 99,131"/>
+          <line x1="219" y1="131" x2="261" y2="89"/>
+        </g>
+        <g fill="#6d3b6b"><circle cx="99" cy="251" r="3.5"/><circle cx="219" cy="251" r="3.5"/><circle cx="219" cy="131" r="3.5"/><circle cx="99" cy="131" r="3.5"/><circle cx="141" cy="209" r="3.5" fill="#b5502a"/><circle cx="261" cy="209" r="3.5"/><circle cx="261" cy="89" r="3.5"/><circle cx="141" cy="89" r="3.5"/></g>
+        <g font-family="Fraunces" font-style="italic" font-size="17" fill="#1c1a17">
+          <text x="82" y="270">A</text><text x="222" y="270">B</text><text x="224" y="150">C</text><text x="82" y="127">D</text>
+          <text x="146" y="229" fill="#b5502a">E</text><text x="268" y="214">F</text><text x="266" y="84">G</text><text x="124" y="84">H</text>
+        </g>
+        <g font-family="JetBrains Mono" font-size="11.5" fill="#4a4640">
+          <text x="40" y="342" font-family="Outfit" font-size="13" font-weight="600" fill="#1c1a17">Frente (z = +0.5)</text>
+          <text x="205" y="342" font-family="Outfit" font-size="13" font-weight="600" fill="#1c1a17">Atrás (z = −0.5)</text>
+          <text x="40" y="364">A (−0.5, −0.5, 0.5)</text><text x="40" y="384">B ( 0.5, −0.5, 0.5)</text>
+          <text x="40" y="404">C ( 0.5,  0.5, 0.5)</text><text x="40" y="424">D (−0.5,  0.5, 0.5)</text>
+          <text x="205" y="364">E (−0.5, −0.5, −0.5)</text><text x="205" y="384">F ( 0.5, −0.5, −0.5)</text>
+          <text x="205" y="404">G ( 0.5,  0.5, −0.5)</text><text x="205" y="424">H (−0.5,  0.5, −0.5)</text>
+        </g>
+      </svg>
+      <figcaption>Perspectiva caballera. Punteado gris: volumen de glOrtho. Punteado rojo: aristas ocultas que salen de E.</figcaption>
+    </figure>
+
+    <h3 class="reveal">Cómo trazarlo a mano</h3>
+    <div class="steps reveal">
+      <div class="step"><div><h4>Traza los ejes</h4><p>X horizontal hacia la derecha, Y vertical hacia arriba y Z en diagonal a 45° hacia abajo-izquierda. Z apunta hacia ti, igual que en OpenGL.</p></div></div>
+      <div class="step"><div><h4>Define la escala</h4><p>Por ejemplo, 1 unidad = 4 cm en X y Y, y 2 cm sobre la diagonal Z. Acortar Z a la mitad es lo que produce la sensación de profundidad.</p></div></div>
+      <div class="step"><div><h4>Marca el volumen de glOrtho</h4><p>Es una caja de −1 a 1 en los tres ejes. Todo lo que quede fuera se recorta (<em>clipping</em>).</p></div></div>
+      <div class="step"><div><h4>Dibuja la cara frontal (z = +0.5)</h4><p>Un cuadrado con esquinas en x, y = ±0.5, desplazado 1 cm en diagonal hacia abajo-izquierda: vértices A, B, C, D.</p></div></div>
+      <div class="step"><div><h4>Dibuja la cara trasera (z = −0.5)</h4><p>El mismo cuadrado, desplazado 1 cm hacia arriba-derecha: vértices E, F, G, H.</p></div></div>
+      <div class="step"><div><h4>Une y decide qué se oculta</h4><p>Une A–E, B–F, C–G y D–H. Las tres aristas que salen de E quedan detrás del cubo y van punteadas. <strong>Guarda esta idea: más adelante la GPU hará exactamente esto con el Z-buffer.</strong></p></div></div>
+    </div>
+
+    <h3 class="reveal">El mismo cubo en código</h3>
+    <div class="code reveal"><div class="bar"><span class="dots">cubo_ortho.c</span><button>copiar</button></div><pre><code>// Volumen de visión: una caja de 2 x 2 x 2 centrada en el origen
+glMatrixMode(GL_PROJECTION);
+glLoadIdentity();
+glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+
+glMatrixMode(GL_MODELVIEW);
+glLoadIdentity();
+glRotatef(30.0f, 1.0f, 0.0f, 0.0f);   // inclina hacia adelante (eje X)
+glRotatef(45.0f, 0.0f, 1.0f, 0.0f);   // gira hacia un lado (eje Y)
+
+glBegin(GL_QUADS);
+    // Cara frontal (z = +0.5): A B C D
+    glVertex3f(-0.5f, -0.5f,  0.5f); glVertex3f( 0.5f, -0.5f,  0.5f);
+    glVertex3f( 0.5f,  0.5f,  0.5f); glVertex3f(-0.5f,  0.5f,  0.5f);
+    // Cara trasera (z = -0.5): F E H G
+    glVertex3f( 0.5f, -0.5f, -0.5f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glVertex3f(-0.5f,  0.5f, -0.5f); glVertex3f( 0.5f,  0.5f, -0.5f);
+    // Cara derecha (x = +0.5): B F G C
+    glVertex3f( 0.5f, -0.5f,  0.5f); glVertex3f( 0.5f, -0.5f, -0.5f);
+    glVertex3f( 0.5f,  0.5f, -0.5f); glVertex3f( 0.5f,  0.5f,  0.5f);
+    // Cara izquierda (x = -0.5): E A D H
+    glVertex3f(-0.5f, -0.5f, -0.5f); glVertex3f(-0.5f, -0.5f,  0.5f);
+    glVertex3f(-0.5f,  0.5f,  0.5f); glVertex3f(-0.5f,  0.5f, -0.5f);
+    // Cara superior (y = +0.5): D C G H
+    glVertex3f(-0.5f,  0.5f,  0.5f); glVertex3f( 0.5f,  0.5f,  0.5f);
+    glVertex3f( 0.5f,  0.5f, -0.5f); glVertex3f(-0.5f,  0.5f, -0.5f);
+    // Cara inferior (y = -0.5): E F B A
+    glVertex3f(-0.5f, -0.5f, -0.5f); glVertex3f( 0.5f, -0.5f, -0.5f);
+    glVertex3f( 0.5f, -0.5f,  0.5f); glVertex3f(-0.5f, -0.5f,  0.5f);
+glEnd();</code></pre></div>
+
+    <div class="callout key reveal"><div class="t">Dato clave</div><p>Sin los dos <code class="i">glRotatef</code>, en pantalla verías <strong>solo un cuadrado</strong>. La proyección ortográfica mira de frente hacia −Z, y la cara trasera queda exactamente detrás de la frontal. El papel usa la diagonal Z como un “truco” para mostrar la profundidad; la pantalla necesita rotar el objeto. Compruébalo en el demo de abajo.</p></div>
+
+    <div class="demo reveal">
+      <canvas id="cubeCv" height="360"></canvas>
+      <div class="controls">
+        <label class="ctl">Rotación X <input type="range" id="rx" min="-90" max="90" value="0"> <span id="rxv">0°</span></label>
+        <label class="ctl">Rotación Y <input type="range" id="ry" min="-180" max="180" value="0"> <span id="ryv">0°</span></label>
+        <button class="btn" id="cubeFront">Vista de frente</button>
+        <button class="btn" id="cubeIso">30° / 45°</button>
+      </div>
+      <div class="readout" id="cubeRead"></div>
+    </div>
+    <p class="reveal">Fíjate en las etiquetas: con 0° / 0°, <strong>A y E caen en el mismo píxel</strong>, igual que B/F, C/G y D/H. La proyección ortográfica descarta Z al calcular la posición en pantalla. Por eso tampoco importa que el cubo mida 0.87 de radio al rotarlo: sigue cabiendo dentro de la caja de −1 a 1.</p>
+  </div>
+</section>
+
+<!-- 02 Z -->
+<section id="z" data-title="La coordenada Z">
+  <div class="wrap">
+    <div class="label reveal">02 · La profundidad</div>
+    <h2 class="reveal">¿Qué significa <em>Z</em>?</h2>
+    <p class="lead reveal">OpenGL usa un sistema de coordenadas de <strong>mano derecha</strong>: X a la derecha, Y hacia arriba y Z saliendo de la pantalla hacia ti. La cámara, por defecto, mira hacia <strong>−Z</strong>.</p>
+
+    <div class="pills reveal">
+      <div class="pill"><div class="e">↔️</div><h4>X · ancho</h4><p>Izquierda (−) y derecha (+). Separa las dos filas de pirámides: x = −7 y x = 7.</p></div>
+      <div class="pill"><div class="e">↕️</div><h4>Y · alto</h4><p>Abajo (−) y arriba (+). El suelo está en y = 0 y la punta de cada pirámide en y = h.</p></div>
+      <div class="pill"><div class="e">↗️</div><h4>Z · profundidad</h4><p>Hacia ti (+) o hacia el fondo (−). Es la coordenada que “aleja” las pirámides.</p></div>
+    </div>
+
+    <div class="analogy reveal"><div class="ic">🚶</div><div class="tx"><div class="t">La analogía</div><p>Imagina que estás parado al inicio de un pasillo largo. X es cuánto te mueves hacia las paredes, Y es cuánto saltas, y Z es <strong>cuántos pasos das hacia el fondo</strong>. Cada paso hacia adelante hace Z más negativo.</p></div></div>
+
+    <h3 class="reveal">Del cubo a la escena</h3>
+    <p class="reveal">En el cubo, la cara frontal tiene <code class="i">z = +0.5</code> y la trasera <code class="i">z = −0.5</code>: solo una unidad de diferencia. En la Práctica 7 la misma idea se estira a escala de desierto. Cada pirámide de la fila se coloca con:</p>
+    <div class="code reveal"><div class="bar"><span class="dots">07_piramides_desierto.c · dibujarEscena()</span><button>copiar</button></div><pre><code>for (int i = 0; i &lt; 7; i++) {
+    float z = -6.0f - i * 15.0f;          // cada vez mas lejos
+    piramideEn(-7.0f, z, 3.0f, 5.0f, 0.80f, 0.62f, 0.30f); // izquierda
+    piramideEn( 7.0f, z, 3.0f, 5.0f, 0.80f, 0.62f, 0.30f); // derecha
+}</code></pre></div>
+
+    <table class="reveal">
+      <thead><tr><th>i</th><th>z de la pirámide</th><th>Qué significa</th></tr></thead>
+      <tbody>
+        <tr><td class="m">0</td><td class="m">−6</td><td>La primera, cerca del inicio del desierto</td></tr>
+        <tr><td class="m">1</td><td class="m">−21</td><td>15 unidades más al fondo</td></tr>
+        <tr><td class="m">2</td><td class="m">−36</td><td>…</td></tr>
+        <tr><td class="m">3</td><td class="m">−51</td><td>Cerca del punto donde mira la cámara (z = −40)</td></tr>
+        <tr><td class="m">4</td><td class="m">−66</td><td>…</td></tr>
+        <tr><td class="m">5</td><td class="m">−81</td><td>…</td></tr>
+        <tr><td class="m">6</td><td class="m">−96</td><td>La última, casi en el borde del suelo (z = −120)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip reveal"><div class="t">Tip</div><p>“Más negativo = más lejos” es cierto aquí porque la cámara está en z ≈ +64 mirando hacia z = −40. Si la cámara orbitara al otro lado, la regla se invertiría. <strong>La profundidad siempre es relativa a la cámara</strong>, no al eje.</p></div>
+  </div>
+</section>
+
+<!-- 03 PIRAMIDE -->
+<section class="alt" id="piramide" data-title="Cubo → pirámide">
+  <div class="wrap">
+    <div class="label reveal">03 · Del cubo a la pirámide</div>
+    <h2 class="reveal">Una pirámide es un cubo <em>con punta</em></h2>
+    <p class="lead reveal">Toma la cara inferior del cubo, bájala al suelo y reemplaza toda la cara superior por un solo punto: el ápice. Eso es exactamente lo que hace <code class="i">dibujarPiramide()</code>.</p>
+
+    <div class="grid2">
+      <figure class="reveal">
+        <svg viewBox="0 0 320 300" role="img" aria-label="Pirámide inscrita en un cubo">
+          <g stroke="#b9b1a4" stroke-width="1" stroke-dasharray="3 4" fill="none">
+            <polygon points="60,250 190,250 190,120 60,120"/>
+            <polyline points="190,250 250,190 250,60 120,60 60,120"/><line x1="190" y1="120" x2="250" y2="60"/>
+            <line x1="120" y1="190" x2="250" y2="190"/><line x1="120" y1="190" x2="120" y2="60"/><line x1="120" y1="190" x2="60" y2="250"/>
+          </g>
+          <polygon points="60,250 190,250 155,90" fill="rgba(166,124,0,.35)" stroke="#a67c00" stroke-width="2"/>
+          <polygon points="190,250 250,190 155,90" fill="rgba(166,124,0,.22)" stroke="#a67c00" stroke-width="2"/>
+          <line x1="120" y1="190" x2="155" y2="90" stroke="#a67c00" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <line x1="120" y1="190" x2="250" y2="190" stroke="#a67c00" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <line x1="120" y1="190" x2="60" y2="250" stroke="#a67c00" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <circle cx="155" cy="90" r="4" fill="#b5502a"/>
+          <g font-family="JetBrains Mono" font-size="11" fill="#4a4640">
+            <text x="164" y="86" fill="#b5502a">ápice (0, h, 0)</text>
+            <text x="22" y="270">x3,z3 ≈ A</text><text x="178" y="270">x2,z2 ≈ B</text>
+            <text x="256" y="195">x1,z1 ≈ F</text><text x="64" y="186">x0,z0 ≈ E</text>
+          </g>
+        </svg>
+        <figcaption>La base de la pirámide es la cara inferior del cubo (E F B A).</figcaption>
+      </figure>
+      <div class="reveal">
+        <table>
+          <thead><tr><th>Pirámide</th><th>Coordenada</th><th>Cubo</th></tr></thead>
+          <tbody>
+            <tr><td class="m">x0, z0</td><td class="m">(−s, 0, −s)</td><td>E</td></tr>
+            <tr><td class="m">x1, z1</td><td class="m">( s, 0, −s)</td><td>F</td></tr>
+            <tr><td class="m">x2, z2</td><td class="m">( s, 0,  s)</td><td>B</td></tr>
+            <tr><td class="m">x3, z3</td><td class="m">(−s, 0,  s)</td><td>A</td></tr>
+            <tr><td class="m">ápice</td><td class="m">(0, h, 0)</td><td>centro de D C G H</td></tr>
+          </tbody>
+        </table>
+        <p>Con <code class="i">s = 0.5</code>, la base coincide con la cara inferior del cubo en X y Z. La única diferencia es que Y pasa de −0.5 a 0, porque la pirámide se apoya en el suelo del desierto.</p>
+      </div>
+    </div>
+
+    <div class="code reveal"><div class="bar"><span class="dots">07_piramides_desierto.c · dibujarPiramide()</span><button>copiar</button></div><pre><code>void dibujarPiramide(float s, float h, float r, float g, float b) {
+    float apx = 0.0f, apy = h, apz = 0.0f;   // apice (punta)
+
+    // Las 4 esquinas de la base: la cara inferior del cubo
+    float x0 = -s, z0 = -s;   // atras-izquierda   (E)
+    float x1 =  s, z1 = -s;   // atras-derecha     (F)
+    float x2 =  s, z2 =  s;   // frente-derecha    (B)
+    float x3 = -s, z3 =  s;   // frente-izquierda  (A)
+
+    glBegin(GL_TRIANGLES);
+        // Cara frontal (+Z): la mas cercana a la camara, tono pleno
+        glColor3f(r, g, b);
+        glVertex3f(apx, apy, apz); glVertex3f(x3, 0, z3); glVertex3f(x2, 0, z2);
+        // Cara derecha (+X): 82 % del brillo
+        glColor3f(r*0.82f, g*0.82f, b*0.82f);
+        glVertex3f(apx, apy, apz); glVertex3f(x2, 0, z2); glVertex3f(x1, 0, z1);
+        // Cara trasera (-Z): la mas oscura, 68 %
+        glColor3f(r*0.68f, g*0.68f, b*0.68f);
+        glVertex3f(apx, apy, apz); glVertex3f(x1, 0, z1); glVertex3f(x0, 0, z0);
+        // Cara izquierda (-X): 90 %
+        glColor3f(r*0.90f, g*0.90f, b*0.90f);
+        glVertex3f(apx, apy, apz); glVertex3f(x0, 0, z0); glVertex3f(x3, 0, z3);
+    glEnd();
+    // ...la base (GL_QUADS) usa 55 % del color
+}</code></pre></div>
+
+    <div class="callout reveal"><div class="t">Destacado · iluminación falsa</div><p>La práctica no activa luces (<code class="i">GL_LIGHTING</code>). Para que las caras no se vean todas iguales, cada una recibe un porcentaje del color base: frente 100 %, izquierda 90 %, derecha 82 %, atrás 68 % y base 55 %. Es la versión “a mano” de lo que después hará el modelo de iluminación con normales.</p></div>
+  </div>
+</section>
+
+<!-- 04 PROYECCION (dark) -->
+<section class="dark" id="proyeccion" data-title="Proyección">
+  <div class="wrap">
+    <div class="label reveal">04 · Proyección</div>
+    <h2 class="reveal">Dos formas de <em>aplastar</em> el mundo</h2>
+    <p class="lead reveal">La pantalla es plana. La proyección decide qué hacer con Z al convertir un punto 3D (x, y, z) en un punto 2D. Toda la Práctica 7 gira alrededor de esta decisión.</p>
+
+    <div class="formula reveal">
+      <div class="f"><div class="t" style="color:#e59a78">Perspectiva · tecla p</div><div class="eq">x' = x / −z</div><p>Se divide entre la distancia. Mientras más lejos (z más negativo), más pequeño se ve el objeto. Es como funcionan tus ojos y una cámara fotográfica.</p></div>
+      <div class="f"><div class="t" style="color:#9fd6d2">Ortográfica · tecla o</div><div class="eq">x' = x / W</div><p>Z no entra en la fórmula de posición. Solo se usa para recortar y para decidir qué tapa a qué. Todo mide igual sin importar la distancia: la vista de un plano técnico.</p></div>
+    </div>
+
+    <div class="code reveal"><div class="bar"><span class="dots">07_piramides_desierto.c · aplicarProyeccion()</span><button>copiar</button></div><pre><code>void aplicarProyeccion(void) {
+    glMatrixMode(GL_PROJECTION);   // trabajamos la matriz de PROYECCION
+    glLoadIdentity();
+    if (perspectiva) {
+        // fovy = 50 grados, aspecto, near = 0.5 (nunca 0), far = 400
+        gluPerspective(50.0, aspecto, 0.5, 400.0);
+    } else {
+        // Caja ortografica: un volumen recto (sin punto de fuga)
+        float H = 22.0f;                 // media altura visible
+        float W = H * aspecto;           // media anchura segun la ventana
+        glOrtho(-W, W, -H, H, -200.0, 400.0);
+    }
+    glMatrixMode(GL_MODELVIEW);    // volvemos a la matriz de modelo/vista
+}</code></pre></div>
+
+    <h3 class="reveal">Tu cubo y esta práctica usan la misma caja</h3>
+    <table class="reveal">
+      <thead><tr><th>Parámetro</th><th>Cubo en papel</th><th>Práctica 7</th></tr></thead>
+      <tbody>
+        <tr><td>left / right</td><td class="m">−1 / 1</td><td class="m">−W / W (según la ventana)</td></tr>
+        <tr><td>bottom / top</td><td class="m">−1 / 1</td><td class="m">−22 / 22</td></tr>
+        <tr><td>near / far</td><td class="m">−1 / 1</td><td class="m">−200 / 400</td></tr>
+        <tr><td>Tamaño de la caja</td><td class="m">2 × 2 × 2</td><td class="m">2W × 44 × 600</td></tr>
+      </tbody>
+    </table>
+    <p class="reveal">Es el mismo concepto a otra escala: una caja recta donde todo lo que está adentro se ve y todo lo de afuera se recorta. En el cubo la caja mide 2 unidades porque el objeto mide 1; en el desierto mide 44 de alto porque las pirámides miden 5 y el suelo 140 de largo.</p>
+
+    <div class="callout warn reveal"><div class="t">Advertencia · el valor de near</div><p>En <code class="i">gluPerspective</code>, near debe ser <strong>positivo y nunca 0</strong>: la fórmula divide entre la distancia, y con near = 0 la precisión del Z-buffer se destruye. En <code class="i">glOrtho</code> no hay división, así que near puede ser negativo (−200). Eso permite ver objetos que están incluso “detrás” del ojo de la cámara.</p></div>
+    <div class="callout tip reveal"><div class="t">Tip · el aspecto</div><p><code class="i">W = H * aspecto</code> evita que las pirámides se estiren al cambiar el tamaño de la ventana. Por eso <code class="i">reshape()</code> recalcula el aspecto y vuelve a llamar a <code class="i">aplicarProyeccion()</code>.</p></div>
+  </div>
+</section>
+
+<!-- 05 DEMO -->
+<section class="alt" id="demo" data-title="Demo en vivo">
+  <div class="wide">
+    <div class="label reveal">05 · Demo en vivo</div>
+    <h2 class="reveal">Pulsa <em>o</em> y <em>p</em></h2>
+    <p class="lead reveal" style="max-width:760px">Una réplica simplificada de la práctica en tu navegador. Misma escena, misma cámara, mismas proyecciones. Cambia entre perspectiva y ortográfica y observa la fila del fondo.</p>
+    <div class="demo reveal">
+      <canvas id="desCv" height="480"></canvas>
+      <div class="controls">
+        <button class="btn on" id="bP">p · Perspectiva</button>
+        <button class="btn" id="bO">o · Ortográfica</button>
+        <label class="ctl">Órbita <input type="range" id="ang" min="-50" max="50" value="25"> <span id="angv">25°</span></label>
+        <label class="ctl">Altura <input type="range" id="alt" min="1" max="40" value="7"> <span id="altv">7</span></label>
+        <button class="btn" id="bA">a · Órbita automática</button>
+      </div>
+      <div class="readout" id="desRead"></div>
+    </div>
+    <div class="callout key reveal" style="max-width:860px"><div class="t">Qué observar</div><p>En perspectiva, las catorce pirámides de la fila se encogen y sus bases convergen hacia un punto de fuga. En ortográfica, la de z = −96 mide exactamente lo mismo que la de z = −6, aunque esté 90 unidades más lejos. También puedes usar las teclas <strong>o</strong>, <strong>p</strong> y <strong>a</strong> del teclado.</p></div>
+  </div>
+</section>
+
+<!-- 06 CODIGO -->
+<section id="codigo" data-title="El código">
+  <div class="wrap">
+    <div class="label reveal">06 · El código paso a paso</div>
+    <h2 class="reveal">Anatomía de la <em>práctica</em></h2>
+    <p class="lead reveal">El programa se organiza en bloques con una responsabilidad clara. Este es el recorrido en el orden en que conviene leerlo.</p>
+
+    <div class="steps reveal">
+      <div class="step"><div><h4>Estado global</h4><p><code class="i">perspectiva</code>, <code class="i">autoOrbita</code>, <code class="i">camAng</code>, <code class="i">camAltura</code> y <code class="i">aspecto</code>. Todo lo que el teclado puede cambiar vive aquí, y <code class="i">display()</code> lo lee en cada cuadro.</p></div></div>
+      <div class="step"><div><h4>dibujarDesierto()</h4><p>Un cuadrado de arena en y = 0 que va de z = +20 a z = −120, más una rejilla de líneas cada 6 unidades. La rejilla es clave: sin ella el ojo no tiene referencias para percibir la profundidad.</p></div></div>
+      <div class="step"><div><h4>dibujarPiramide()</h4><p>Cuatro triángulos y una base, con sombreado falso por cara. Siempre se dibuja en el origen local.</p></div></div>
+      <div class="step"><div><h4>piramideEn()</h4><p>Traslada con <code class="i">glTranslatef</code> y dibuja, protegida por <code class="i">glPushMatrix</code>/<code class="i">glPopMatrix</code> para que cada traslado no se acumule sobre el siguiente.</p></div></div>
+      <div class="step"><div><h4>dibujarEscena()</h4><p>El desierto, dos filas de 7 pirámides idénticas (semilado 3, altura 5) y dos pirámides grandes como referencia de escala.</p></div></div>
+      <div class="step"><div><h4>aplicarProyeccion()</h4><p>La matriz de proyección: <code class="i">gluPerspective</code> o <code class="i">glOrtho</code>, según la variable <code class="i">perspectiva</code>.</p></div></div>
+      <div class="step"><div><h4>display()</h4><p>Limpia color y profundidad, coloca la cámara con <code class="i">gluLookAt</code> y dibuja la escena.</p></div></div>
+      <div class="step"><div><h4>Interacción</h4><p><code class="i">temporizador</code> (cada 16 ms ≈ 60 fps), <code class="i">teclado</code> (o, p, a, espacio) y <code class="i">especial</code> (flechas, con límites de altura entre 1 y 40).</p></div></div>
+      <div class="step"><div><h4>reshape() e init()</h4><p>Ajustan el viewport y el aspecto, definen el cielo azul y activan <code class="i">GL_DEPTH_TEST</code>.</p></div></div>
+      <div class="step"><div><h4>main()</h4><p>Pide una ventana con doble buffer, color RGB y <strong>buffer de profundidad</strong> (<code class="i">GLUT_DEPTH</code>), registra los callbacks y entra al bucle.</p></div></div>
+    </div>
+
+    <h3 class="reveal">La pila de matrices</h3>
+    <div class="code reveal"><div class="bar"><span class="dots">07_piramides_desierto.c · piramideEn()</span><button>copiar</button></div><pre><code>void piramideEn(float x, float z, float s, float h,
+                float r, float g, float b) {
+    glPushMatrix();                 // guarda el estado actual
+        glTranslatef(x, 0.0f, z);   // mueve el origen al lugar de la piramide
+        dibujarPiramide(s, h, r, g, b);
+    glPopMatrix();                  // restaura: la siguiente empieza limpia
+}</code></pre></div>
+    <div class="analogy reveal"><div class="ic" style="background:var(--plum)">📌</div><div class="tx"><div class="t" style="color:var(--plum)">La analogía</div><p><code class="i">glPushMatrix</code> es como poner un alfiler en el mapa antes de caminar. Vas a la pirámide, la dibujas y con <code class="i">glPopMatrix</code> vuelves al alfiler. Sin él, la segunda pirámide se trasladaría desde la primera y no desde el origen.</p></div></div>
+
+    <h3 class="reveal">La cámara que orbita</h3>
+    <div class="code reveal"><div class="bar"><span class="dots">07_piramides_desierto.c · display()</span><button>copiar</button></div><pre><code>float rad  = camAng * PI / 180.0f;   // grados a radianes
+float R    = 34.0f;                  // radio de la orbita
+float ojoX = R * sinf(rad);
+float ojoZ = 30.0f + R * cosf(rad);  // circulo centrado en z = 30
+
+gluLookAt(ojoX, camAltura, ojoZ,     // donde esta el ojo
+          0.0f, 4.0f, -40.0f,        // hacia donde mira
+          0.0f, 1.0f, 0.0f);         // que direccion es "arriba"</code></pre></div>
+    <p class="reveal">El ojo recorre un círculo de radio 34 alrededor del punto (0, 30) en el plano XZ, siempre mirando hacia (0, 4, −40), en medio de la fila. Con <code class="i">camAng = 0</code>, el ojo queda en z = 64: 70 unidades por delante de la primera pirámide y 160 de la última. Esa gran diferencia de Z es la que la perspectiva convierte en diferencia de tamaño.</p>
+
+    <h3 class="reveal">Un detalle fino en el suelo</h3>
+    <div class="code reveal"><div class="bar"><span class="dots">07_piramides_desierto.c · dibujarDesierto()</span><button>copiar</button></div><pre><code>glBegin(GL_LINES);
+    for (int i = -60; i &lt;= 60; i += 6) {   // lineas a lo largo (eje Z)
+        glVertex3f((float)i, 0.01f,   20.0f);   // y = 0.01, no 0
+        glVertex3f((float)i, 0.01f, -120.0f);
+    }
+    // ...lineas a lo ancho (eje X), tambien en y = 0.01
+glEnd();</code></pre></div>
+    <div class="callout warn reveal"><div class="t">Advertencia · z-fighting</div><p>La rejilla se dibuja en <code class="i">y = 0.01</code> y no en 0. Si las líneas y la arena estuvieran exactamente a la misma profundidad, el Z-buffer no sabría cuál va delante y las líneas parpadearían o se cortarían (<em>z-fighting</em>). Levantarlas una centésima resuelve el empate.</p></div>
+  </div>
+</section>
+
+<!-- 07 ZBUFFER -->
+<section class="alt" id="zbuffer" data-title="Z-buffer">
+  <div class="wrap">
+    <div class="label reveal">07 · El Z-buffer</div>
+    <h2 class="reveal">Las líneas <em>punteadas</em> del papel</h2>
+    <p class="lead reveal">Cuando dibujaste el cubo, tú decidiste que las aristas de E estaban ocultas. La GPU toma esa misma decisión, pero píxel por píxel: guarda la profundidad del objeto más cercano en cada píxel y descarta lo que quede detrás.</p>
+    <p class="reveal">Para que funcione hacen falta tres piezas, y la práctica tiene las tres. Esto pasa si falta alguna:</p>
+
+    <div class="ev reveal">
+      <div class="card"><div class="stripe" style="background:var(--plum)"></div><div class="in"><h4>Sin GLUT_DEPTH</h4><p>La ventana no tiene memoria de profundidad. <code class="i">GL_DEPTH_TEST</code> se activa, pero no tiene dónde escribir.</p><div class="box"><b>En main()</b>glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH)</div></div></div>
+      <div class="card"><div class="stripe" style="background:var(--teal)"></div><div class="in"><h4>Sin glEnable</h4><p>Gana el último objeto dibujado: el suelo taparía pirámides o las traseras aparecerían delante de las frontales.</p><div class="box"><b>En init()</b>glEnable(GL_DEPTH_TEST)</div></div></div>
+      <div class="card"><div class="stripe" style="background:var(--rust)"></div><div class="in"><h4>Sin limpiar el buffer</h4><p>Las profundidades del cuadro anterior se quedan. Al orbitar, aparecen huecos y restos de la imagen previa.</p><div class="box"><b>En display()</b>glClear(... | GL_DEPTH_BUFFER_BIT)</div></div></div>
+      <div class="card"><div class="stripe" style="background:var(--gold)"></div><div class="in"><h4>Profundidades empatadas</h4><p>Dos superficies en el mismo Z pelean por el píxel: el z-fighting de la rejilla.</p><div class="box"><b>Solución aplicada</b>Rejilla en y = 0.01 sobre la arena en y = 0</div></div></div>
+    </div>
+
+    <div class="callout key reveal"><div class="t">La conexión completa</div><p>Z cumple <strong>dos trabajos distintos</strong>. En perspectiva, cambia el tamaño en pantalla (división entre −z). En ambas proyecciones, decide qué tapa a qué (Z-buffer). Por eso en ortográfica las pirámides miden igual pero <strong>se siguen tapando correctamente</strong>: Z dejó de afectar el tamaño, pero no la visibilidad.</p></div>
+  </div>
+</section>
+
+<!-- 08 QUIZ -->
+<section id="quiz" data-title="Comprueba">
+  <div class="wrap">
+    <div class="label reveal">08 · Comprueba lo aprendido</div>
+    <h2 class="reveal">Cinco preguntas <em>rápidas</em></h2>
+
+    <div class="q reveal" data-ok="1" data-fb="Correcto: en ortográfica, Z no entra en la fórmula del tamaño. Ambas pirámides miden semilado 3 y altura 5, así que se ven iguales.">
+      <h4>1. En modo ortográfico, ¿cómo se ve la pirámide de z = −96 comparada con la de z = −6?</h4>
+      <div class="opts"><button>Mucho más pequeña</button><button>Del mismo tamaño</button><button>No se ve, queda fuera del volumen</button></div><div class="fb"></div></div>
+
+    <div class="q reveal" data-ok="2" data-fb="Correcto: la perspectiva divide entre la distancia. Con near = 0 esa relación se rompe y el Z-buffer pierde casi toda su precisión.">
+      <h4>2. ¿Por qué gluPerspective usa near = 0.5 y no 0?</h4>
+      <div class="opts"><button>Porque así se ve más grande la escena</button><button>Porque OpenGL no acepta decimales</button><button>Porque la proyección divide entre la distancia y near = 0 destruye la precisión de profundidad</button></div><div class="fb"></div></div>
+
+    <div class="q reveal" data-ok="0" data-fb="Correcto: sin rotación, la cara trasera queda exactamente detrás de la frontal y la ortográfica descarta Z al posicionar. A y E caen en el mismo píxel.">
+      <h4>3. El cubo de lado 1 con glOrtho(−1,1,−1,1,−1,1) y sin glRotatef, ¿cómo se ve?</h4>
+      <div class="opts"><button>Como un cuadrado</button><button>Como en el dibujo en papel</button><button>No se ve nada</button></div><div class="fb"></div></div>
+
+    <div class="q reveal" data-ok="1" data-fb="Correcto: si comparten profundidad exacta con la arena, el Z-buffer no puede decidir cuál va delante y aparece el z-fighting.">
+      <h4>4. ¿Por qué la rejilla del desierto se dibuja en y = 0.01?</h4>
+      <div class="opts"><button>Para que se vea más gruesa</button><button>Para evitar el z-fighting con la arena</button><button>Porque y = 0 está fuera del volumen de visión</button></div><div class="fb"></div></div>
+
+    <div class="q reveal" data-ok="2" data-fb="Correcto: (x2, z2) = (s, s) es frente-derecha. En el cubo corresponde a B = (0.5, −0.5, 0.5).">
+      <h4>5. La esquina (x2, z2) = (s, s) de la base de la pirámide corresponde a qué vértice del cubo?</h4>
+      <div class="opts"><button>E</button><button>G</button><button>B</button></div><div class="fb"></div></div>
+  </div>
+</section>
+
+<!-- CIERRE -->
+<section class="dark closing" id="cierre" data-title="Cierre">
+  <div class="wide">
+    <div class="label reveal" style="justify-content:center">Cierre</div>
+    <h2 class="reveal">Ahora Z tiene <em>sentido</em></h2>
+    <p class="lead reveal" style="max-width:680px;margin:0 auto 40px">Empezaste con ocho puntos en papel y terminaste entendiendo cómo una GPU decide tamaño y visibilidad en una escena completa. Todo lo que viene después en el curso (cámaras, iluminación, texturas) se apoya en esto.</p>
+    <div class="pills reveal">
+      <div class="pill"><div class="e">🏜️</div><h4>Reto 1</h4><p>Agrega una tercera fila en x = 0 con pirámides más altas. ¿Qué pasa con la vista ortográfica cuando la cámara sube?</p></div>
+      <div class="pill"><div class="e">📐</div><h4>Reto 2</h4><p>Cambia H de 22 a 10 en glOrtho. Explica por qué la escena parece un zoom y no un cambio de distancia.</p></div>
+      <div class="pill"><div class="e">🧊</div><h4>Reto 3</h4><p>Reemplaza una pirámide por el cubo de la sección 01, escalado con glScalef para que mida lo mismo.</p></div>
+      <div class="pill"><div class="e">🔍</div><h4>Reto 4</h4><p>Comenta glEnable(GL_DEPTH_TEST), orbita la cámara y describe exactamente qué falla y por qué.</p></div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ---------- progreso, puntos y aparición ---------- */
+(function(){
+  const bar=document.getElementById('progress');
+  const secs=[...document.querySelectorAll('section[data-title]')];
+  const nav=document.getElementById('dots');
+  secs.forEach(s=>{const a=document.createElement('a');a.href='#'+s.id;a.innerHTML='<span>'+s.dataset.title+'</span>';nav.appendChild(a);});
+  const dots=[...nav.children];
+  function onScroll(){
+    const h=document.documentElement;
+    bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+    let idx=0;secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<innerHeight*0.45)idx=i;});
+    dots.forEach((d,i)=>d.classList.toggle('on',i===idx));
+  }
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+})();
+
+/* ---------- resaltado de sintaxis C y botón copiar ---------- */
+(function(){
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const re=/(\/\/.*$)|("(?:[^"\\]|\\.)*")|(^\s*#.*$)|(\b(?:GL_\w+|GLUT_\w+)\b)|(\b\d+(?:\.\d+)?f?\b)|(\b(?:int|float|void|const|unsigned|char|double)\b)|(\b(?:return|if|else|for|while)\b)|(\b[A-Za-z_]\w*(?=\s*\())/gm;
+  document.querySelectorAll('.code pre code').forEach(el=>{
+    const src=el.textContent;let out='',last=0,m;
+    while((m=re.exec(src))){
+      out+=esc(src.slice(last,m.index));
+      const t=esc(m[0]);
+      const cls=m[1]?'cm':m[2]?'s':m[3]?'pp':m[4]?'c':m[5]?'n':m[6]?'ty':m[7]?'k':'fn';
+      out+='<span class="'+cls+'">'+t+'</span>';last=re.lastIndex;
+    }
+    out+=esc(src.slice(last));el.innerHTML=out;
+  });
+  document.querySelectorAll('.code button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const txt=b.closest('.code').querySelector('code').textContent;
+      const done=()=>{b.textContent='¡copiado!';setTimeout(()=>b.textContent='copiar',1500);};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();
+      function fallback(){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();done();}
+    });
+  });
+})();
+
+/* ---------- utilidades 3D ---------- */
+const V={sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+  norm:a=>{const l=Math.hypot(a[0],a[1],a[2]);return[a[0]/l,a[1]/l,a[2]/l];}};
+function lookAt(eye,target,up){const f=V.norm(V.sub(target,eye));const s=V.norm(V.cross(f,up));const u=V.cross(s,f);
+  return p=>{const d=V.sub(p,eye);return[V.dot(s,d),V.dot(u,d),-V.dot(f,d)];};}
+function fitCanvas(cv){const dpr=window.devicePixelRatio||1;const w=cv.clientWidth;const h=parseInt(cv.getAttribute('height'));
+  if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.height=h+'px';}
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return{ctx,w,h};}
+
+/* ---------- demo del cubo ---------- */
+(function(){
+  const cv=document.getElementById('cubeCv');
+  const rx=document.getElementById('rx'),ry=document.getElementById('ry');
+  const P=[[-.5,-.5,.5],[.5,-.5,.5],[.5,.5,.5],[-.5,.5,.5],[-.5,-.5,-.5],[.5,-.5,-.5],[.5,.5,-.5],[-.5,.5,-.5]];
+  const L='ABCDEFGH';
+  const F=[[[0,1,2,3],'109,59,107'],[[5,4,7,6],'29,107,107'],[[1,5,6,2],'181,80,42'],[[4,0,3,7],'166,124,0'],[[3,2,6,7],'45,90,158'],[[4,5,1,0],'58,107,53']];
+  function draw(){
+    const {ctx,w,h}=fitCanvas(cv);
+    const ax=rx.value*Math.PI/180, ay=ry.value*Math.PI/180;
+    document.getElementById('rxv').textContent=rx.value+'°';document.getElementById('ryv').textContent=ry.value+'°';
+    const T=P.map(p=>{let x=p[0]*Math.cos(ay)+p[2]*Math.sin(ay),z=-p[0]*Math.sin(ay)+p[2]*Math.cos(ay),y=p[1];
+      const y2=y*Math.cos(ax)-z*Math.sin(ax),z2=y*Math.sin(ax)+z*Math.cos(ax);return[x,y2,z2];});
+    const S=Math.min(w,h)/2*0.92, cx=w/2, cy=h/2;
+    const scr=p=>[cx+p[0]*S,cy-p[1]*S];
+    ctx.fillStyle='#fdfcfa';ctx.fillRect(0,0,w,h);
+    ctx.setLineDash([4,5]);ctx.strokeStyle='#c9c1b4';ctx.lineWidth=1;ctx.strokeRect(cx-S,cy-S,2*S,2*S);
+    ctx.setLineDash([]);ctx.strokeStyle='#e2dbd0';ctx.beginPath();ctx.moveTo(cx-S,cy);ctx.lineTo(cx+S,cy);ctx.moveTo(cx,cy-S);ctx.lineTo(cx,cy+S);ctx.stroke();
+    ctx.font='11px JetBrains Mono';ctx.fillStyle='#9a9388';ctx.fillText('-1',cx-S+4,cy-6);ctx.fillText('1',cx+S-12,cy-6);ctx.fillText('1',cx+5,cy-S+13);ctx.fillText('-1',cx+5,cy+S-5);
+    const faces=F.map(([idx,c])=>({idx,c,z:idx.reduce((a,i)=>a+T[i][2],0)/4})).sort((a,b)=>a.z-b.z);
+    faces.forEach(f=>{ctx.beginPath();f.idx.forEach((i,k)=>{const q=scr(T[i]);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();
+      ctx.fillStyle='rgba('+f.c+',0.82)';ctx.fill();ctx.strokeStyle='#1c1a17';ctx.lineWidth=1.3;ctx.stroke();});
+    const groups={};T.map((p,i)=>({p,i})).sort((a,b)=>b.p[2]-a.p[2]).forEach(({p,i})=>{const q=scr(p);const k=Math.round(q[0]/6)+','+Math.round(q[1]/6);
+      if(!groups[k])groups[k]={q,t:[]};groups[k].t.push(L[i]);});
+    ctx.font='italic 15px Fraunces';
+    Object.values(groups).forEach(g=>{const txt=g.t.join('/');const tw=ctx.measureText(txt).width;
+      ctx.fillStyle='rgba(250,248,245,.92)';ctx.fillRect(g.q[0]+5,g.q[1]-17,tw+8,19);ctx.fillStyle='#1c1a17';ctx.fillText(txt,g.q[0]+9,g.q[1]-3);
+      ctx.beginPath();ctx.arc(g.q[0],g.q[1],3,0,7);ctx.fill();});
+    document.getElementById('cubeRead').textContent='glRotatef('+rx.value+', 1, 0, 0);  glRotatef('+ry.value+', 0, 1, 0);'+(rx.value==0&&ry.value==0?'   → solo se ve la cara frontal: un cuadrado':'');
+  }
+  rx.oninput=ry.oninput=draw;
+  document.getElementById('cubeFront').onclick=()=>{rx.value=0;ry.value=0;draw();};
+  document.getElementById('cubeIso').onclick=()=>{rx.value=30;ry.value=45;draw();};
+  addEventListener('resize',draw);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
+  draw();
+})();
+
+/* ---------- demo del desierto ---------- */
+(function(){
+  const cv=document.getElementById('desCv');
+  const st={persp:true,auto:false,ang:25,alt:7};
+  const bP=document.getElementById('bP'),bO=document.getElementById('bO'),bA=document.getElementById('bA');
+  const angS=document.getElementById('ang'),altS=document.getElementById('alt');
+  const shade=(c,k)=>'rgb('+Math.round(c[0]*k*255)+','+Math.round(c[1]*k*255)+','+Math.round(c[2]*k*255)+')';
+  function pyr(cx,cz,s,h,c){const A=[cx,h,cz],c0=[cx-s,0,cz-s],c1=[cx+s,0,cz-s],c2=[cx+s,0,cz+s],c3=[cx-s,0,cz+s];
+    return[[[A,c3,c2],shade(c,1)],[[A,c2,c1],shade(c,.82)],[[A,c1,c0],shade(c,.68)],[[A,c0,c3],shade(c,.9)]];}
+  const tris=[];
+  for(let i=0;i<7;i++){const z=-6-i*15;tris.push(...pyr(-7,z,3,5,[.8,.62,.3]),...pyr(7,z,3,5,[.8,.62,.3]));}
+  tris.push(...pyr(-18,-14,5,8.5,[.72,.52,.28]),...pyr(18,-22,6,10,[.7,.5,.26]));
+  const lines=[];for(let i=-60;i<=60;i+=6)lines.push([[i,.01,20],[i,.01,-120]]);for(let k=20;k>=-120;k-=6)lines.push([[-60,.01,k],[60,.01,k]]);
+  function draw(){
+    const {ctx,w,h}=fitCanvas(cv);const asp=w/h;
+    const rad=st.ang*Math.PI/180,R=34;const eye=[R*Math.sin(rad),st.alt,30+R*Math.cos(rad)];
+    const view=lookAt(eye,[0,4,-40],[0,1,0]);const t=Math.tan(25*Math.PI/180);const H=22,W=H*asp;
+    const proj=p=>{const e=view(p);if(st.persp){if(e[2]>-0.5)return null;return[(e[0]/-e[2])/(t*asp),(e[1]/-e[2])/t,e[2]];}return[e[0]/W,e[1]/H,e[2]];};
+    const scr=n=>[(n[0]+1)/2*w,(1-n[1])/2*h];
+    ctx.fillStyle='#87b5db';ctx.fillRect(0,0,w,h);
+    const fl=[[-60,0,20],[60,0,20],[60,0,-120],[-60,0,-120]].map(proj);
+    if(fl.every(Boolean)){ctx.beginPath();fl.forEach((n,k)=>{const q=scr(n);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();ctx.fillStyle='#dbbd85';ctx.fill();}
+    ctx.strokeStyle='#c7a873';ctx.lineWidth=1;ctx.beginPath();
+    lines.forEach(([a,b])=>{const p=proj(a),q=proj(b);if(p&&q){const A=scr(p),B=scr(q);ctx.moveTo(A[0],A[1]);ctx.lineTo(B[0],B[1]);}});ctx.stroke();
+    const list=[];tris.forEach(([v,c])=>{const pv=v.map(proj);if(pv.every(Boolean))list.push({pv,c,z:(pv[0][2]+pv[1][2]+pv[2][2])/3});});
+    list.sort((a,b)=>a.z-b.z).forEach(o=>{ctx.beginPath();o.pv.forEach((n,k)=>{const q=scr(n);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();
+      ctx.fillStyle=o.c;ctx.fill();ctx.strokeStyle=o.c;ctx.lineWidth=.8;ctx.stroke();});
+    ctx.font='500 12px JetBrains Mono';ctx.fillStyle='rgba(28,26,23,.75)';ctx.fillRect(12,12,st.persp?118:122,26);
+    ctx.fillStyle='#faf8f5';ctx.fillText(st.persp?'PERSPECTIVA':'ORTOGRÁFICA',22,30);
+    document.getElementById('desRead').textContent=(st.persp?'gluPerspective(50.0, '+asp.toFixed(2)+', 0.5, 400.0)':'glOrtho('+(-W).toFixed(1)+', '+W.toFixed(1)+', -22.0, 22.0, -200.0, 400.0)')+
+      '   ·   ojo = ('+eye[0].toFixed(1)+', '+eye[1].toFixed(1)+', '+eye[2].toFixed(1)+')';
+    angS.value=Math.round(st.ang);document.getElementById('angv').textContent=Math.round(st.ang)+'°';document.getElementById('altv').textContent=st.alt;
+  }
+  function setP(v){st.persp=v;bP.classList.toggle('on',v);bO.classList.toggle('on',!v);draw();}
+  bP.onclick=()=>setP(true);bO.onclick=()=>setP(false);
+  let dir=1;
+  function toggleAuto(){st.auto=!st.auto;bA.classList.toggle('on',st.auto);}
+  bA.onclick=toggleAuto;
+  angS.oninput=()=>{st.ang=+angS.value;draw();};altS.oninput=()=>{st.alt=+altS.value;draw();};
+  addEventListener('keydown',e=>{const tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA')return;
+    const k=e.key.toLowerCase();if(k==='p')setP(true);else if(k==='o')setP(false);else if(k==='a')toggleAuto();});
+  (function loop(){if(st.auto){st.ang+=0.25*dir;if(st.ang>50){st.ang=50;dir=-1;}if(st.ang<-50){st.ang=-50;dir=1;}draw();}requestAnimationFrame(loop);})();
+  addEventListener('resize',draw);draw();
+})();
+
+/* ---------- quiz ---------- */
+document.querySelectorAll('.q').forEach(q=>{
+  const ok=+q.dataset.ok;const bs=[...q.querySelectorAll('button')];const fb=q.querySelector('.fb');
+  bs.forEach((b,i)=>b.addEventListener('click',()=>{
+    bs.forEach(x=>x.classList.remove('ok','bad'));
+    if(i===ok){b.classList.add('ok');fb.textContent=q.dataset.fb;fb.style.color='var(--green)';}
+    else{b.classList.add('bad');fb.textContent='Todavía no. Revisa la sección correspondiente e inténtalo otra vez.';fb.style.color='var(--rust)';}
+    fb.classList.add('show');
+  }));
+});
+</script>
+</body>
+</html>

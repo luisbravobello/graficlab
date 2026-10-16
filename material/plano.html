@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta name="robots" content="noindex,nofollow">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plano cartesiano interactivo</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --fondo: #0f172a;
+      --panel: #1e293b;
+      --borde: #334155;
+      --texto: #e2e8f0;
+      --secundario: #94a3b8;
+      --azul: #38bdf8;
+      --rojo: #fb7185;
+      --verde: #34d399;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 20px;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+    }
+
+    .descripcion {
+      margin: 0 0 20px;
+      color: var(--secundario);
+      line-height: 1.5;
+    }
+
+    .aplicacion {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) 1fr;
+      gap: 20px;
+      max-width: 1500px;
+      margin: auto;
+    }
+
+    .panel,
+    .zona-grafico {
+      padding: 18px;
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: 0 12px 30px rgb(0 0 0 / 20%);
+    }
+
+    .grupo {
+      margin-bottom: 20px;
+    }
+
+    .grupo h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+    }
+
+    .fila {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      color: var(--secundario);
+      font-size: 0.85rem;
+    }
+
+    input {
+      width: 100%;
+      margin-top: 5px;
+      padding: 9px;
+      border: 1px solid var(--borde);
+      border-radius: 7px;
+      outline: none;
+      background: #0f172a;
+      color: var(--texto);
+    }
+
+    input:focus {
+      border-color: var(--azul);
+    }
+
+    button {
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--azul);
+      color: #082f49;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    button.secundario {
+      background: #475569;
+      color: white;
+    }
+
+    button.peligro {
+      background: var(--rojo);
+      color: #4c0519;
+    }
+
+    .botones {
+      display: grid;
+      gap: 8px;
+    }
+
+    .coordenadas {
+      padding: 10px;
+      border-radius: 8px;
+      background: #0f172a;
+      color: var(--verde);
+      font-family: monospace;
+      text-align: center;
+    }
+
+    .lista-puntos {
+      max-height: 260px;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      list-style: none;
+    }
+
+    .lista-puntos li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding: 8px;
+      border-radius: 7px;
+      background: #0f172a;
+      font-family: monospace;
+    }
+
+    .lista-puntos button {
+      padding: 5px 8px;
+      background: var(--rojo);
+      color: #4c0519;
+    }
+
+    .canvas-contenedor {
+      position: relative;
+      width: 100%;
+      min-height: 550px;
+      overflow: hidden;
+      border-radius: 10px;
+      background: white;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 650px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .ayuda {
+      margin: 12px 0 0;
+      color: var(--secundario);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 850px) {
+      body {
+        padding: 10px;
+      }
+
+      .aplicacion {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 500px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="aplicacion">
+    <aside class="panel">
+      <h1>Plano cartesiano</h1>
+      <p class="descripcion">
+        Agrega puntos escribiendo sus coordenadas o haciendo clic en el plano.
+        También puedes arrastrarlos.
+      </p>
+
+      <section class="grupo">
+        <h2>Rango de los ejes</h2>
+
+        <div class="fila">
+          <label>
+            X mínimo
+            <input id="xMin" type="number" value="0">
+          </label>
+
+          <label>
+            X máximo
+            <input id="xMax" type="number" value="200">
+          </label>
+        </div>
+
+        <div class="fila">
+          <label>
+            Y mínimo
+            <input id="yMin" type="number" value="0">
+          </label>
+
+          <label>
+            Y máximo
+            <input id="yMax" type="number" value="200">
+          </label>
+        </div>
+
+        <button id="aplicarRango">Aplicar rango</button>
+      </section>
+
+      <section class="grupo">
+        <h2>Agregar punto</h2>
+
+        <div class="fila">
+          <label>
+            Coordenada X
+            <input id="puntoX" type="number" step="any" value="100">
+          </label>
+
+          <label>
+            Coordenada Y
+            <input id="puntoY" type="number" step="any" value="100">
+          </label>
+        </div>
+
+        <button id="agregarPunto">Agregar punto</button>
+      </section>
+
+      <section class="grupo">
+        <h2>Cursor</h2>
+        <div id="coordenadasCursor" class="coordenadas">X: 0.00 | Y: 0.00</div>
+      </section>
+
+      <section class="grupo">
+        <h2>Puntos guardados</h2>
+        <ul id="listaPuntos" class="lista-puntos"></ul>
+      </section>
+
+      <section class="botones">
+        <button id="exportarJSON" class="secundario">Exportar JSON</button>
+        <button id="exportarCSV" class="secundario">Exportar CSV</button>
+        <button id="limpiar" class="peligro">Eliminar todos los puntos</button>
+      </section>
+
+      <p class="ayuda">
+        Clic: agregar un punto.<br>
+        Arrastrar un punto: cambiar su posición.<br>
+        Doble clic sobre un punto: eliminarlo.<br>
+        Rueda del ratón: acercar o alejar.<br>
+        Línea naranja: centro del rango visible (no necesariamente el origen).
+      </p>
+    </aside>
+
+    <section class="zona-grafico">
+      <div class="canvas-contenedor">
+        <canvas id="plano"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("plano");
+    const ctx = canvas.getContext("2d");
+
+    const elementos = {
+      xMin: document.getElementById("xMin"),
+      xMax: document.getElementById("xMax"),
+      yMin: document.getElementById("yMin"),
+      yMax: document.getElementById("yMax"),
+      puntoX: document.getElementById("puntoX"),
+      puntoY: document.getElementById("puntoY"),
+      cursor: document.getElementById("coordenadasCursor"),
+      lista: document.getElementById("listaPuntos")
+    };
+
+    const margen = {
+      izquierda: 65,
+      derecha: 25,
+      superior: 25,
+      inferior: 55
+    };
+
+    let rango = {
+      xMin: 0,
+      xMax: 200,
+      yMin: 0,
+      yMax: 200
+    };
+
+    let puntos = [];
+    let puntoArrastrado = -1;
+    let contadorPuntos = 1;
+
+    function ajustarCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const proporcion = window.devicePixelRatio || 1;
+
+      canvas.width = Math.round(rect.width * proporcion);
+      canvas.height = Math.round(rect.height * proporcion);
+
+      ctx.setTransform(proporcion, 0, 0, proporcion, 0, 0);
+      dibujar();
+    }
+
+    function anchoUtil() {
+      return canvas.clientWidth - margen.izquierda - margen.derecha;
+    }
+
+    function altoUtil() {
+      return canvas.clientHeight - margen.superior - margen.inferior;
+    }
+
+    function convertirX(x) {
+      return margen.izquierda +
+        ((x - rango.xMin) / (rango.xMax - rango.xMin)) * anchoUtil();
+    }
+
+    function convertirY(y) {
+      return margen.superior +
+        ((rango.yMax - y) / (rango.yMax - rango.yMin)) * altoUtil();
+    }
+
+    function convertirCanvasACoordenada(px, py) {
+      const x = rango.xMin +
+        ((px - margen.izquierda) / anchoUtil()) * (rango.xMax - rango.xMin);
+
+      const y = rango.yMax -
+        ((py - margen.superior) / altoUtil()) * (rango.yMax - rango.yMin);
+
+      return { x, y };
+    }
+
+    function pasoAdecuado(amplitud) {
+      const pasoIdeal = amplitud / 10;
+      const potencia = Math.pow(10, Math.floor(Math.log10(pasoIdeal)));
+      const normalizado = pasoIdeal / potencia;
+
+      if (normalizado < 1.5) return potencia;
+      if (normalizado < 3) return 2 * potencia;
+      if (normalizado < 7) return 5 * potencia;
+      return 10 * potencia;
+    }
+
+    function decimalesNecesarios(valor) {
+      if (valor >= 1) return valor < 10 ? 1 : 0;
+      return Math.min(6, Math.ceil(-Math.log10(valor)) + 1);
+    }
+
+    function dibujar() {
+      const ancho = canvas.clientWidth;
+      const alto = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, ancho, alto);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, ancho, alto);
+
+      dibujarCuadricula();
+      dibujarCruzCentral();
+      dibujarEjes();
+      dibujarPuntos();
+    }
+
+    function dibujarCuadricula() {
+      const pasoX = pasoAdecuado(rango.xMax - rango.xMin);
+      const pasoY = pasoAdecuado(rango.yMax - rango.yMin);
+      const decimalesX = decimalesNecesarios(pasoX);
+      const decimalesY = decimalesNecesarios(pasoY);
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#dbeafe";
+      ctx.fillStyle = "#475569";
+      ctx.font = "12px Arial";
+
+      const primerX = Math.ceil(rango.xMin / pasoX) * pasoX;
+
+      for (let x = primerX; x <= rango.xMax + pasoX * 0.001; x += pasoX) {
+        const px = convertirX(x);
+
+        ctx.beginPath();
+        ctx.moveTo(px, margen.superior);
+        ctx.lineTo(px, canvas.clientHeight - margen.inferior);
+        ctx.stroke();
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(
+          limpiarNumero(x, decimalesX),
+          px,
+          canvas.clientHeight - margen.inferior + 10
+        );
+      }
+
+      const primerY = Math.ceil(rango.yMin / pasoY) * pasoY;
+
+      for (let y = primerY; y <= rango.yMax + pasoY * 0.001; y += pasoY) {
+        const py = convertirY(y);
+
+        ctx.beginPath();
+        ctx.moveTo(margen.izquierda, py);
+        ctx.lineTo(canvas.clientWidth - margen.derecha, py);
+        ctx.stroke();
+
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          limpiarNumero(y, decimalesY),
+          margen.izquierda - 10,
+          py
+        );
+      }
+    }
+
+    // Cruz de referencia: siempre marca el centro del rango visible.
+    // No sustituye al origen (0,0); sirve para orientarse aunque el rango sea 0..200.
+    function dibujarCruzCentral() {
+      const centroXValor = (rango.xMin + rango.xMax) / 2;
+      const centroYValor = (rango.yMin + rango.yMax) / 2;
+      const px = convertirX(centroXValor);
+      const py = convertirY(centroYValor);
+      const izquierda = margen.izquierda;
+      const derecha = canvas.clientWidth - margen.derecha;
+      const arriba = margen.superior;
+      const abajo = canvas.clientHeight - margen.inferior;
+
+      ctx.save();
+      ctx.strokeStyle = "#f59e0b";
+      ctx.fillStyle = "#92400e";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 5]);
+
+      ctx.beginPath();
+      ctx.moveTo(izquierda, py);
+      ctx.lineTo(derecha, py);
+      ctx.moveTo(px, arriba);
+      ctx.lineTo(px, abajo);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(px, py, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#f59e0b";
+      ctx.fill();
+
+      ctx.font = "bold 12px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.fillStyle = "#92400e";
+      ctx.fillText(
+        `Centro (${formatear(centroXValor)}, ${formatear(centroYValor)})`,
+        px + 8,
+        py - 7
+      );
+      ctx.restore();
+    }
+
+    function dibujarEjes() {
+      const izquierda = margen.izquierda;
+      const derecha = canvas.clientWidth - margen.derecha;
+      const arriba = margen.superior;
+      const abajo = canvas.clientHeight - margen.inferior;
+
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = 2;
+
+      ctx.strokeRect(izquierda, arriba, anchoUtil(), altoUtil());
+
+      if (rango.xMin <= 0 && rango.xMax >= 0) {
+        const ejeY = convertirX(0);
+        ctx.beginPath();
+        ctx.moveTo(ejeY, arriba);
+        ctx.lineTo(ejeY, abajo);
+        ctx.stroke();
+      }
+
+      if (rango.yMin <= 0 && rango.yMax >= 0) {
+        const ejeX = convertirY(0);
+        ctx.beginPath();
+        ctx.moveTo(izquierda, ejeX);
+        ctx.lineTo(derecha, ejeX);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 14px Arial";
+
+      ctx.textAlign = "right";
+      ctx.fillText("X", derecha, abajo + 38);
+
+      ctx.textAlign = "left";
+      ctx.fillText("Y", izquierda - 40, arriba + 5);
+    }
+
+    function dibujarPuntos() {
+      puntos.forEach((punto, indice) => {
+        const px = convertirX(punto.x);
+        const py = convertirY(punto.y);
+
+        if (
+          px < margen.izquierda ||
+          px > canvas.clientWidth - margen.derecha ||
+          py < margen.superior ||
+          py > canvas.clientHeight - margen.inferior
+        ) {
+          return;
+        }
+
+        ctx.beginPath();
+        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.fillStyle = indice === puntoArrastrado ? "#34d399" : "#ef4444";
+        ctx.fill();
+        ctx.strokeStyle = "#7f1d1d";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "12px Arial";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(
+          `${punto.nombre} (${formatear(punto.x)}, ${formatear(punto.y)})`,
+          px + 10,
+          py - 7
+        );
+      });
+    }
+
+    function limpiarNumero(numero, decimales) {
+      const resultado = Number(numero.toFixed(decimales));
+      return Object.is(resultado, -0) ? "0" : String(resultado);
+    }
+
+    function formatear(numero) {
+      return limpiarNumero(numero, 2);
+    }
+
+    function dentroDelPlano(px, py) {
+      return (
+        px >= margen.izquierda &&
+        px <= canvas.clientWidth - margen.derecha &&
+        py >= margen.superior &&
+        py <= canvas.clientHeight - margen.inferior
+      );
+    }
+
+    function posicionDelEvento(evento) {
+      const rect = canvas.getBoundingClientRect();
+
+      if (evento.touches && evento.touches.length) {
+        return {
+          x: evento.touches[0].clientX - rect.left,
+          y: evento.touches[0].clientY - rect.top
+        };
+      }
+
+      return {
+        x: evento.clientX - rect.left,
+        y: evento.clientY - rect.top
+      };
+    }
+
+    function buscarPuntoCercano(px, py) {
+      for (let i = puntos.length - 1; i >= 0; i--) {
+        const dx = convertirX(puntos[i].x) - px;
+        const dy = convertirY(puntos[i].y) - py;
+
+        if (Math.hypot(dx, dy) <= 12) {
+          return i;
+        }
+      }
+
+      return -1;
+    }
+
+    function agregarPunto(x, y) {
+      if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        alert("Introduce coordenadas válidas.");
+        return;
+      }
+
+      puntos.push({
+        nombre: `P${contadorPuntos++}`,
+        x,
+        y
+      });
+
+      actualizarLista();
+      dibujar();
+    }
+
+    function eliminarPunto(indice) {
+      puntos.splice(indice, 1);
+      actualizarLista();
+      dibujar();
+    }
+
+    function actualizarLista() {
+      elementos.lista.innerHTML = "";
+
+      if (puntos.length === 0) {
+        const elemento = document.createElement("li");
+        elemento.textContent = "No hay puntos";
+        elementos.lista.appendChild(elemento);
+        return;
+      }
+
+      puntos.forEach((punto, indice) => {
+        const elemento = document.createElement("li");
+        const texto = document.createElement("span");
+        const boton = document.createElement("button");
+
+        texto.textContent =
+          `${punto.nombre}: (${formatear(punto.x)}, ${formatear(punto.y)})`;
+
+        boton.textContent = "X";
+        boton.title = "Eliminar punto";
+        boton.addEventListener("click", () => eliminarPunto(indice));
+
+        elemento.append(texto, boton);
+        elementos.lista.appendChild(elemento);
+      });
+    }
+
+    function aplicarRango() {
+      const nuevoRango = {
+        xMin: Number(elementos.xMin.value),
+        xMax: Number(elementos.xMax.value),
+        yMin: Number(elementos.yMin.value),
+        yMax: Number(elementos.yMax.value)
+      };
+
+      const valoresValidos = Object.values(nuevoRango).every(Number.isFinite);
+
+      if (
+        !valoresValidos ||
+        nuevoRango.xMin >= nuevoRango.xMax ||
+        nuevoRango.yMin >= nuevoRango.yMax
+      ) {
+        alert("El valor mínimo debe ser menor que el máximo.");
+        return;
+      }
+
+      rango = nuevoRango;
+      dibujar();
+    }
+
+    function descargar(nombre, contenido, tipo) {
+      const archivo = new Blob([contenido], { type: tipo });
+      const url = URL.createObjectURL(archivo);
+      const enlace = document.createElement("a");
+
+      enlace.href = url;
+      enlace.download = nombre;
+      enlace.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    canvas.addEventListener("pointerdown", evento => {
+      const posicion = posicionDelEvento(evento);
+
+      if (!dentroDelPlano(posicion.x, posicion.y)) return;
+
+      const encontrado = buscarPuntoCercano(posicion.x, posicion.y);
+
+      if (encontrado >= 0) {
+        puntoArrastrado = encontrado;
+        canvas.setPointerCapture(evento.pointerId);
+      } else {
+        const coordenada = convertirCanvasACoordenada(posicion.x, posicion.y);
+        agregarPunto(coordenada.x, coordenada.y);
+      }
+    });
+
+    canvas.addEventListener("pointermove", evento => {
+      const posicion = posicionDelEvento(evento);
+      const coordenada = convertirCanvasACoordenada(posicion.x, posicion.y);
+
+      elementos.cursor.textContent =
+        `X: ${formatear(coordenada.x)} | Y: ${formatear(coordenada.y)}`;
+
+      if (puntoArrastrado >= 0 && dentroDelPlano(posicion.x, posicion.y)) {
+        puntos[puntoArrastrado].x = Math.min(
+          rango.xMax,
+          Math.max(rango.xMin, coordenada.x)
+        );
+
+        puntos[puntoArrastrado].y = Math.min(
+          rango.yMax,
+          Math.max(rango.yMin, coordenada.y)
+        );
+
+        actualizarLista();
+        dibujar();
+      }
+    });
+
+    canvas.addEventListener("pointerup", () => {
+      puntoArrastrado = -1;
+      dibujar();
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      puntoArrastrado = -1;
+      dibujar();
+    });
+
+    canvas.addEventListener("dblclick", evento => {
+      const posicion = posicionDelEvento(evento);
+      const indice = buscarPuntoCercano(posicion.x, posicion.y);
+
+      if (indice >= 0) {
+        eliminarPunto(indice);
+      }
+    });
+
+    canvas.addEventListener(
+      "wheel",
+      evento => {
+        evento.preventDefault();
+
+        const posicion = posicionDelEvento(evento);
+        const centro = convertirCanvasACoordenada(posicion.x, posicion.y);
+        const factor = evento.deltaY < 0 ? 0.85 : 1.15;
+
+        rango.xMin = centro.x - (centro.x - rango.xMin) * factor;
+        rango.xMax = centro.x + (rango.xMax - centro.x) * factor;
+        rango.yMin = centro.y - (centro.y - rango.yMin) * factor;
+        rango.yMax = centro.y + (rango.yMax - centro.y) * factor;
+
+        elementos.xMin.value = formatear(rango.xMin);
+        elementos.xMax.value = formatear(rango.xMax);
+        elementos.yMin.value = formatear(rango.yMin);
+        elementos.yMax.value = formatear(rango.yMax);
+
+        dibujar();
+      },
+      { passive: false }
+    );
+
+    document.getElementById("aplicarRango").addEventListener(
+      "click",
+      aplicarRango
+    );
+
+    document.getElementById("agregarPunto").addEventListener("click", () => {
+      agregarPunto(
+        Number(elementos.puntoX.value),
+        Number(elementos.puntoY.value)
+      );
+    });
+
+    document.getElementById("limpiar").addEventListener("click", () => {
+      puntos = [];
+      contadorPuntos = 1;
+      actualizarLista();
+      dibujar();
+    });
+
+    document.getElementById("exportarJSON").addEventListener("click", () => {
+      const datos = {
+        rango,
+        puntos
+      };
+
+      descargar(
+        "puntos-cartesianos.json",
+        JSON.stringify(datos, null, 2),
+        "application/json"
+      );
+    });
+
+    document.getElementById("exportarCSV").addEventListener("click", () => {
+      const filas = [
+        "nombre,x,y",
+        ...puntos.map(punto =>
+          `${punto.nombre},${punto.x},${punto.y}`
+        )
+      ];
+
+      descargar(
+        "puntos-cartesianos.csv",
+        filas.join("\n"),
+        "text/csv;charset=utf-8"
+      );
+    });
+
+    window.addEventListener("resize", ajustarCanvas);
+
+    actualizarLista();
+    ajustarCanvas();
+  </script>
+</body>
+</html>
