@@ -24,6 +24,8 @@ Las herramientas nuevas simulan en Canvas, no compilan C ni ejecutan una impleme
 
 ## Progreso y respaldo
 
+Las ocho secciones abren en modo negro con acentos lavanda. El botón de la cabecera alterna con el modo claro y conserva la preferencia en `graficlab-theme-v1`, separada del progreso. Los tres Canvas se redibujan al cambiar de tema para adaptar fondo, ejes, etiquetas y vectores. La impresión del examen conserva fondo blanco.
+
 Clave localStorage: graficlab-study-v1. Notas, lectura, intervalos y errores no comparten datos con otros sitios de estudio. Se puede exportar/importar JSON con validación de formato y confirmación antes de reemplazar. No hay cuentas ni servidor de datos.
 
 ## Verificación

@@ -1,7 +1,7 @@
 import {topics,cases} from './content.js';
 import {questions} from './questions.js';
 import {state,save,download} from './state.js';
-import {initPractice} from './tools.js';
+import {initPractice} from './tools.js?v=20261016-1';
 const page=document.body.dataset.page,main=document.querySelector('main');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const heading=(step,title,desc)=>`<p class="eyebrow">${step}</p><h1>${title}</h1><p class="intro">${desc}</p>`;
